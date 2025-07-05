@@ -48,6 +48,12 @@ cache/
 .cache/
 *.cache
 
+# Binary files (but allow documentation)
+bin/*/*/retroarch-indexer
+bin/*/*/retroarch-indexer.exe
+!bin/README.md
+!bin/CHECKSUMS.md
+
 # Test files and directories
 test_roms/
 test_playlists/

@@ -14,7 +14,26 @@ Um indexador universal de ROMs de alta performance escrito em Rust, projetado pa
 
 ## 🚀 Início Rápido
 
-### Instalação
+### 📦 Binários Pré-compilados (Recomendado)
+
+Baixe o binário para sua plataforma na pasta [`bin/`](bin/):
+
+```bash
+# Windows x64
+.\bin\windows\x64\retroarch-indexer.exe --help
+
+# Linux x64
+./bin/linux/x64/retroarch-indexer --help
+
+# macOS Intel
+./bin/macos/intel/retroarch-indexer --help
+
+# Verificar binários disponíveis
+.\check-binaries.ps1  # Windows
+./check-binaries.sh   # Linux/macOS
+```
+
+### 🔧 Compilação Manual
 
 ```bash
 # Clone o repositório
@@ -26,6 +45,10 @@ cargo build --release
 
 # Executar
 ./target/release/retroarch-indexer --help
+
+# Compilar para múltiplas plataformas
+.\build-all.ps1  # Windows
+./build-all.sh   # Linux/macOS
 ```
 
 ### Uso Básico
