@@ -2,7 +2,7 @@ use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 use crate::platform::Platform;
 
-#[derive(Parser)]
+#[derive(Parser, Clone)]
 #[command(
     name = "retroarch-indexer",
     about = "Um indexador universal de ROMs de alta performance para RetroArch",
@@ -108,7 +108,7 @@ pub struct Args {
     pub command: Option<Commands>,
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Clone)]
 pub enum Commands {
     /// Converte uma playlist específica entre plataformas
     Convert {
@@ -241,7 +241,7 @@ pub enum Commands {
 }
 
 /// Estratégias de deduplicação
-#[derive(clap::ValueEnum, Clone, Debug)]
+#[derive(clap::ValueEnum, Clone, Copy, Debug)]
 pub enum DeduplicationStrategy {
     /// Prioridade por região (USA > Europe > Japan)
     #[value(name = "region-priority")]
@@ -261,7 +261,7 @@ pub enum DeduplicationStrategy {
 }
 
 /// Ações do cache
-#[derive(Subcommand)]
+#[derive(Subcommand, Debug, Clone)]
 pub enum CacheAction {
     /// Limpa o cache de CRC32
     Clear,

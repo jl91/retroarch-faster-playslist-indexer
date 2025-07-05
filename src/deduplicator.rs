@@ -1,8 +1,8 @@
 use anyhow::{Result, Context};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::fs;
-use log::{info, debug, warn};
+use log::{info, debug};
 
 use crate::scanner::RomFile;
 use crate::crc32::calculate_crc32;
@@ -470,7 +470,7 @@ impl RomDeduplicator {
         }
 
         // Process each duplicate group
-        for (crc32, mut group_roms) in duplicate_groups {
+        for (crc32, group_roms) in duplicate_groups {
             debug!("Processing duplicate group with CRC32: {:08X}", crc32);
             
             if group_roms.is_empty() {
@@ -489,9 +489,11 @@ impl RomDeduplicator {
             // Remove duplicates (all except the best one)
             for (i, rom) in group_roms.iter().enumerate() {
                 if i != best_index {
-                    let file_size = rom.size.unwrap_or_else(|| {
+                    let file_size = if rom.size > 0 {
+                        rom.size
+                    } else {
                         std::fs::metadata(&rom.path).map(|m| m.len()).unwrap_or(0)
-                    });
+                    };
                     
                     if !self.dry_run {
                         // Backup file if requested
@@ -561,9 +563,11 @@ impl RomDeduplicator {
         let mut best_size = 0u64;
 
         for (i, rom) in roms.iter().enumerate() {
-            let size = rom.size.unwrap_or_else(|| {
+            let size = if rom.size > 0 {
+                rom.size
+            } else {
                 std::fs::metadata(&rom.path).map(|m| m.len()).unwrap_or(0)
-            });
+            };
             
             if size > best_size {
                 best_size = size;
@@ -594,7 +598,7 @@ impl RomDeduplicator {
 
     /// Select ROM by directory priority
     fn select_by_directory_priority(&self, roms: &[RomFile]) -> usize {
-        for (priority, dir) in self.directory_priorities.iter().enumerate() {
+        for (_priority, dir) in self.directory_priorities.iter().enumerate() {
             for (i, rom) in roms.iter().enumerate() {
                 if rom.path.starts_with(dir) {
                     return i;

@@ -1,0 +1,190 @@
+# RetroArch Fast Playlist Indexer - .gitignore
+
+# Rust/Cargo
+/target/
+**/*.rs.bk
+Cargo.lock
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Windows
+*.tmp
+*.temp
+*.lnk
+
+# Runtime and temporary files
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# Application specific
+# Cache files
+cache/
+.cache/
+*.cache
+
+# Test files and directories
+test_roms/
+test_playlists/
+temp_*
+test_*
+
+# Generated playlists (for development)
+playlists/
+*.lpl
+
+# Configuration files with sensitive data
+config.toml
+!config.example.toml
+
+# Archive files (testing)
+*.zip
+*.7z
+*.rar
+
+# ROM files (should never be committed)
+*.nes
+*.snes
+*.smc
+*.sfc
+*.n64
+*.z64
+*.v64
+*.gba
+*.gb
+*.gbc
+*.nds
+*.iso
+*.cso
+*.chd
+*.bin
+*.cue
+*.img
+*.rom
+*.a26
+*.a78
+*.md
+*.gen
+*.sms
+*.gg
+*.pce
+*.ws
+*.wsc
+*.ngp
+*.ngc
+
+# DAT files (can be large)
+dats/
+*.dat
+*.xml
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Documentation build
+docs/_build/
+docs/site/
+
+# Package files
+*.deb
+*.rpm
+*.tar.gz
+*.zip
+
+# Release builds
+releases/
+dist/
+
+# Benchmark results
+bench/
+*.bench
+
+# Coverage reports
+coverage/
+*.lcov
+*.gcov
+
+# Profiling
+*.prof
+callgrind.out.*
+
+# Lock files for package managers
+package-lock.json
+yarn.lock
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Reports and outputs
+reports/
+output/
+*.report
+*.csv
+
+# Flamegraphs
+flamegraph.svg
+perf.data*
+
+# Core dumps
+core
+core.*
+
+# Debug symbols
+*.pdb
+*.dSYM/
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Python (if any Python tools are used)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Node.js (if any web interfaces are added)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

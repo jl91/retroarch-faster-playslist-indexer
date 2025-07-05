@@ -47,29 +47,29 @@ fn main() -> Result<()> {
     // Print banner
     print_banner();
     
-    match args.command {
+    match &args.command {
         Some(Commands::Convert { input, source, target, output_dir, validate_paths }) => {
-            handle_convert_command(input, source, target, output_dir, validate_paths)?;
+            handle_convert_command(input.clone(), *source, *target, output_dir.clone(), *validate_paths)?;
         }
         Some(Commands::ConvertAll { input_dir, source, target, output_dir, validate_paths }) => {
-            handle_convert_all_command(input_dir, source, target, output_dir, validate_paths)?;
+            handle_convert_all_command(input_dir.clone(), *source, *target, output_dir.clone(), *validate_paths)?;
         }
         #[cfg(feature = "watch-mode")]
         Some(Commands::Watch { debounce, batch_size, include_archives }) => {
-            handle_watch_command(args, debounce, batch_size, include_archives)?;
+            handle_watch_command(args.clone(), *debounce, *batch_size, *include_archives)?;
         }
         #[cfg(feature = "dat-download")]
         Some(Commands::DownloadDats { output_dir, systems, force, timeout }) => {
-            handle_download_dats_command(output_dir, systems, force, timeout)?;
+            handle_download_dats_command(output_dir.clone(), systems.clone(), *force, *timeout)?;
         }
         Some(Commands::Validate { dat_dir, report, systems }) => {
-            handle_validate_command(args, dat_dir, report, systems)?;
+            handle_validate_command(args.clone(), dat_dir.clone(), report.clone(), systems.clone())?;
         }
         Some(Commands::Deduplicate { strategy, priority_dirs, dry_run, backup, backup_dir, report }) => {
-            handle_deduplicate_command(args, strategy, priority_dirs, dry_run, backup, backup_dir, report)?;
+            handle_deduplicate_command(args.clone(), *strategy, priority_dirs.clone(), *dry_run, *backup, backup_dir.clone(), report.clone())?;
         }
         Some(Commands::Cache { action }) => {
-            handle_cache_command(action)?;
+            handle_cache_command(action.clone())?;
         }
         None => {
             handle_index_command(args)?;
@@ -614,7 +614,7 @@ fn handle_cache_command(action: CacheAction) -> Result<()> {
     println!("🗄️  Gerenciamento de Cache");
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
-    let cache = CrcCache::new()?;
+    let mut cache = CrcCache::with_default_location()?;
 
     match action {
         CacheAction::Clear => {

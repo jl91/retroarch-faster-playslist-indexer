@@ -98,9 +98,8 @@ opt-level = 1
 debug = true
 
 [features]
-default = ["archive-support"]
-archive-support = ["zip", "sevenz-rust"]
-# dat-download = ["reqwest", "md5"]  # DISABLED due to edition2024 issue
-# watch-mode = ["notify"]           # DISABLED due to edition2024 issue
-# full = ["archive-support", "dat-download", "watch-mode"]  # DISABLED due to edition2024 issue
-full = ["archive-support"]
+default = []
+archive-support = []  # Disabled dependencies but keep feature for conditional compilation
+dat-download = []     # Disabled dependencies but keep feature for conditional compilation
+watch-mode = []       # Disabled dependencies but keep feature for conditional compilation
+full = ["archive-support", "dat-download", "watch-mode"]

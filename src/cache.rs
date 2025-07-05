@@ -34,6 +34,26 @@ impl CrcCache {
         }
     }
 
+    /// Create a new cache with default location
+    pub fn with_default_location() -> Result<Self> {
+        let cache_dir = dirs::cache_dir()
+            .or_else(|| dirs::home_dir().map(|h| h.join(".cache")))
+            .unwrap_or_else(|| PathBuf::from("."));
+        
+        let cache_dir = cache_dir.join("retroarch-indexer");
+        std::fs::create_dir_all(&cache_dir)?;
+        
+        let cache_file = cache_dir.join("crc32_cache.json");
+        
+        if cache_file.exists() {
+            Self::load_from_file(&cache_file)
+        } else {
+            let mut cache = Self::default();
+            cache.cache_file = Some(cache_file);
+            Ok(cache)
+        }
+    }
+
     /// Load cache from file
     pub fn load_from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
         let path = path.as_ref();
@@ -145,26 +165,6 @@ impl CrcCache {
         self.dirty = true;
         
         Ok(())
-    }
-
-    /// Create a new cache with default location
-    pub fn new() -> Result<Self> {
-        let cache_dir = dirs::cache_dir()
-            .or_else(|| dirs::home_dir().map(|h| h.join(".cache")))
-            .unwrap_or_else(|| PathBuf::from("."));
-        
-        let cache_dir = cache_dir.join("retroarch-indexer");
-        std::fs::create_dir_all(&cache_dir)?;
-        
-        let cache_file = cache_dir.join("crc32_cache.json");
-        
-        if cache_file.exists() {
-            Self::load_from_file(&cache_file)
-        } else {
-            let mut cache = Self::default();
-            cache.cache_file = Some(cache_file);
-            Ok(cache)
-        }
     }
 
     /// Clear all cache entries

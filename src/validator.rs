@@ -1,7 +1,7 @@
 use anyhow::{Result, Context};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use log::{info, debug, warn, error};
+use log::{info, debug};
 
 use crate::scanner::RomFile;
 use crate::dat_parser::{DatCollection, DatEntry};
@@ -129,9 +129,10 @@ impl RomValidator {
         let mut collection = DatCollection::new();
         collection.load_from_file(dat_path.as_ref())?;
         
+        let total_entries = collection.total_entries();
         self.dat_collections.insert(system.to_string(), collection);
         info!("Loaded DAT collection for {}: {} entries", 
-            system, collection.total_entries());
+            system, total_entries);
         
         Ok(())
     }
@@ -196,7 +197,7 @@ impl RomValidator {
     }
 
     /// Analyze a DAT match
-    fn analyze_dat_match(&self, rom: &RomFile, entry: &DatEntry, system: &str) -> ValidationResult {
+    fn analyze_dat_match(&self, rom: &RomFile, entry: &DatEntry, _system: &str) -> ValidationResult {
         let filename = rom.path.file_stem()
             .and_then(|name| name.to_str())
             .unwrap_or("");
