@@ -1,0 +1,106 @@
+[package]
+name = "retroarch-fast-indexer"
+version = "1.2.0"
+edition = "2021"
+authors = ["RetroArch Fast Indexer Team"]
+description = "Um indexador universal de ROMs de alta performance para RetroArch"
+license = "MIT"
+repository = "https://github.com/seu-usuario/retroarch-fast-indexer"
+keywords = ["retroarch", "roms", "playlist", "indexer", "emulation"]
+categories = ["command-line-utilities", "games"]
+
+[[bin]]
+name = "retroarch-indexer"
+path = "src/main.rs"
+
+[dependencies]
+# Core async and parallel processing
+rayon = "1.10"
+tokio = { version = "1.40", features = ["full"] }
+
+# Serialization and data handling
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+
+# File system and path handling
+walkdir = "2.5"
+glob = "0.3"
+
+# CRC32 calculation
+crc32fast = "1.4"
+
+# Command line interface
+clap = { version = "4.5", features = ["derive", "env"] }
+
+# Terminal UI and progress
+colored = "3.0.0"
+indicatif = { version = "0.18", features = ["rayon"] }
+
+# Error handling
+anyhow = "1.0"
+thiserror = "2.0.12"
+
+# Archive handling - DISABLED due to edition2024 issue
+# zip = { version = "0.6", optional = true }
+# sevenz-rust = { version = "0.5", optional = true }
+
+# Data structures
+dashmap = "6.0"
+
+# Logging
+log = "0.4"
+env_logger = "0.11"
+
+# Platform detection
+cfg-if = "1.0"
+
+# Date and time
+chrono = { version = "0.4.31", features = ["serde"] }
+
+# Regex
+regex = "1.10"
+
+# HTTP client for DAT downloads - DISABLED due to edition2024 issue
+# reqwest = { version = "0.11.22", features = ["json"], optional = true }
+
+# Additional utilities
+num_cpus = "1.16"
+dirs = "6.0"
+
+# File system watching - DISABLED due to edition2024 issue  
+# notify = { version = "5.0", optional = true }
+
+# Cryptography for checksums - DISABLED due to edition2024 issue
+# md5 = { version = "0.7", optional = true }
+
+# Force compatible versions to avoid edition2024 issues
+# [dependencies.base64ct]
+# version = "1.6"
+
+# [dependencies.crypto-common]
+# version = "0.1"
+
+[dev-dependencies]
+tempfile = "3.13"
+assert_cmd = "2.0"
+predicates = "3.1"
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+opt-level = 3
+
+[profile.dev]
+opt-level = 1
+debug = true
+
+[features]
+default = ["archive-support"]
+archive-support = ["zip", "sevenz-rust"]
+# dat-download = ["reqwest", "md5"]  # DISABLED due to edition2024 issue
+# watch-mode = ["notify"]           # DISABLED due to edition2024 issue
+# full = ["archive-support", "dat-download", "watch-mode"]  # DISABLED due to edition2024 issue
+full = ["archive-support"]

@@ -1,0 +1,72 @@
+# Mapeamento de Cores por Plataforma
+# Define os nomes dos arquivos de core para cada plataforma
+
+[cores.fceumm]
+display_name = "FCEUmm"
+platforms.windows = "fceumm_libretro.dll"
+platforms.linux = "fceumm_libretro.so"
+platforms.macos = "fceumm_libretro.dylib"
+platforms.android = "fceumm_libretro_android.so"
+platforms.switch = "fceumm_libretro_libnx.a"
+platforms.raspberry = "fceumm_libretro.so"
+platforms.steamdeck = "fceumm_libretro.so"
+
+[cores.snes9x]
+display_name = "Snes9x"
+platforms.windows = "snes9x_libretro.dll"
+platforms.linux = "snes9x_libretro.so"
+platforms.macos = "snes9x_libretro.dylib"
+platforms.android = "snes9x_libretro_android.so"
+platforms.switch = "snes9x_libretro_libnx.a"
+platforms.raspberry = "snes9x_libretro.so"
+platforms.steamdeck = "snes9x_libretro.so"
+
+[cores.mupen64plus_next]
+display_name = "Mupen64Plus-Next"
+platforms.windows = "mupen64plus_next_libretro.dll"
+platforms.linux = "mupen64plus_next_libretro.so"
+platforms.macos = "mupen64plus_next_libretro.dylib"
+platforms.android = "mupen64plus_next_libretro_android.so"
+platforms.switch = "mupen64plus_next_libretro_libnx.a"
+platforms.raspberry = "mupen64plus_next_libretro.so"
+platforms.steamdeck = "mupen64plus_next_libretro.so"
+
+[cores.mgba]
+display_name = "mGBA"
+platforms.windows = "mgba_libretro.dll"
+platforms.linux = "mgba_libretro.so"
+platforms.macos = "mgba_libretro.dylib"
+platforms.android = "mgba_libretro_android.so"
+platforms.switch = "mgba_libretro_libnx.a"
+platforms.raspberry = "mgba_libretro.so"
+platforms.steamdeck = "mgba_libretro.so"
+
+[cores.genesis_plus_gx]
+display_name = "Genesis Plus GX"
+platforms.windows = "genesis_plus_gx_libretro.dll"
+platforms.linux = "genesis_plus_gx_libretro.so"
+platforms.macos = "genesis_plus_gx_libretro.dylib"
+platforms.android = "genesis_plus_gx_libretro_android.so"
+platforms.switch = "genesis_plus_gx_libretro_libnx.a"
+platforms.raspberry = "genesis_plus_gx_libretro.so"
+platforms.steamdeck = "genesis_plus_gx_libretro.so"
+
+[cores.pcsx_rearmed]
+display_name = "PCSX ReARMed"
+platforms.windows = "pcsx_rearmed_libretro.dll"
+platforms.linux = "pcsx_rearmed_libretro.so"
+platforms.macos = "pcsx_rearmed_libretro.dylib"
+platforms.android = "pcsx_rearmed_libretro_android.so"
+platforms.switch = "pcsx_rearmed_libretro_libnx.a"
+platforms.raspberry = "pcsx_rearmed_libretro.so"
+platforms.steamdeck = "pcsx_rearmed_libretro.so"
+
+[cores.mame]
+display_name = "MAME (Current)"
+platforms.windows = "mame_libretro.dll"
+platforms.linux = "mame_libretro.so"
+platforms.macos = "mame_libretro.dylib"
+platforms.android = "mame_libretro_android.so"
+# MAME não está disponível para Switch
+platforms.raspberry = "mame_libretro.so"
+platforms.steamdeck = "mame_libretro.so"

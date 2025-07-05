@@ -1,0 +1,76 @@
+# Regras de Conversão entre Plataformas
+# Define como converter caminhos e configurações entre diferentes plataformas
+
+[platforms.windows]
+name = "Windows (PC)"
+roms_prefix = "D:/Games/ROMs"
+cores_prefix = "C:/RetroArch/cores"
+path_separator = "\\"
+core_extension = ".dll"
+
+[platforms.linux]
+name = "Linux (PC)"
+roms_prefix = "/home/user/ROMs"
+cores_prefix = "/usr/lib/libretro"
+path_separator = "/"
+core_extension = ".so"
+
+[platforms.macos]
+name = "macOS"
+roms_prefix = "/Users/user/ROMs"
+cores_prefix = "/Applications/RetroArch.app/Contents/Resources/cores"
+path_separator = "/"
+core_extension = ".dylib"
+
+[platforms.android]
+name = "Android"
+roms_prefix = "/storage/emulated/0/RetroArch/roms"
+cores_prefix = "/data/data/com.retroarch/cores"
+path_separator = "/"
+core_extension = "_android.so"
+
+[platforms.switch]
+name = "Nintendo Switch"
+roms_prefix = "/switch/roms"
+cores_prefix = "/switch/retroarch/cores"
+path_separator = "/"
+core_extension = "_libnx.a"
+
+[platforms.raspberry]
+name = "Raspberry Pi"
+roms_prefix = "/home/pi/RetroPie/roms"
+cores_prefix = "/opt/retropie/libretrocores"
+path_separator = "/"
+core_extension = ".so"
+
+[platforms.steamdeck]
+name = "Steam Deck"
+roms_prefix = "/home/deck/ROMs"
+cores_prefix = "/home/deck/.var/app/org.libretro.RetroArch/config/retroarch/cores"
+path_separator = "/"
+core_extension = ".so"
+
+# Regras de conversão específicas
+[conversion_rules]
+# Padrões de diretório que devem ser preservados
+preserve_structure = [
+    "nes", "snes", "n64", "gba", "nds",
+    "genesis", "mastersystem", "gamegear",
+    "psx", "ps2", "psp", "atari2600", "mame"
+]
+
+# Mapeamento de nomes de diretório alternativos
+[conversion_rules.directory_aliases]
+"megadrive" = "genesis"
+"md" = "genesis"
+"sms" = "mastersystem"
+"gg" = "gamegear"
+"playstation" = "psx"
+"ps1" = "psx"
+"gameboy" = "gb"
+"gameboycolor" = "gbc"
+"gameboyadvance" = "gba"
+"nintendods" = "nds"
+"famicom" = "nes"
+"superfamicom" = "snes"
+"nintendo64" = "n64"

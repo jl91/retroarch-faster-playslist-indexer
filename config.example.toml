@@ -1,0 +1,49 @@
+# Configuração de exemplo para o RetroArch Fast Indexer
+
+[general]
+# Plataforma de origem e destino
+source_platform = "windows"
+target_platform = "switch"
+
+# Configurações gerais
+auto_download_dats = false
+create_master_playlist = true
+threads = 8
+calculate_crc = true
+recursive_scan = true
+
+[paths]
+# Diretórios de ROMs (pode ter múltiplos)
+roms_directories = [
+    "D:/Games/ROMs",
+    "E:/RetroGaming/ROMs"
+]
+
+# Diretório de saída para playlists
+output_directory = "./playlists"
+
+# Diretório contendo arquivos DAT (opcional)
+dat_directory = "./dats"
+
+# Extensões customizadas (opcional - deixe vazio para usar todas)
+custom_extensions = []
+
+[cores]
+# Sobrescrever cores padrão para sistemas específicos
+# override_system_cores.sistema = "core_name"
+
+# Caminhos customizados de cores por plataforma
+# custom_core_paths.windows = "C:/RetroArch/cores"
+
+[dat]
+# Download automático de DATs
+auto_download = false
+
+# Fontes para download (quando habilitado)
+download_sources = [
+    "https://datomatic.no-intro.org/",
+    "http://redump.org/"
+]
+
+# Intervalo para atualização (em dias)
+update_interval_days = 30

@@ -1,0 +1,104 @@
+# Configuração de Sistemas
+# Define as extensões suportadas e cores padrão para cada sistema
+
+[systems.nes]
+name = "Nintendo - Nintendo Entertainment System"
+extensions = ["nes", "fds", "unf", "unif"]
+default_core = "fceumm"
+db_name = "Nintendo - Nintendo Entertainment System.lpl"
+
+[systems.snes]
+name = "Nintendo - Super Nintendo Entertainment System"
+extensions = ["smc", "sfc", "swc", "fig"]
+default_core = "snes9x"
+db_name = "Nintendo - Super Nintendo Entertainment System.lpl"
+
+[systems.n64]
+name = "Nintendo - Nintendo 64"
+extensions = ["z64", "n64", "v64"]
+default_core = "mupen64plus_next"
+db_name = "Nintendo - Nintendo 64.lpl"
+
+[systems.gamecube]
+name = "Nintendo - GameCube"
+extensions = ["gcm", "iso", "gcz", "rvz"]
+default_core = "dolphin"
+db_name = "Nintendo - GameCube.lpl"
+
+[systems.gb]
+name = "Nintendo - Game Boy"
+extensions = ["gb"]
+default_core = "mgba"
+db_name = "Nintendo - Game Boy.lpl"
+
+[systems.gbc]
+name = "Nintendo - Game Boy Color"
+extensions = ["gbc"]
+default_core = "mgba"
+db_name = "Nintendo - Game Boy Color.lpl"
+
+[systems.gba]
+name = "Nintendo - Game Boy Advance"
+extensions = ["gba"]
+default_core = "mgba"
+db_name = "Nintendo - Game Boy Advance.lpl"
+
+[systems.nds]
+name = "Nintendo - Nintendo DS"
+extensions = ["nds", "dsi", "ids"]
+default_core = "desmume"
+db_name = "Nintendo - Nintendo DS.lpl"
+
+[systems.genesis]
+name = "Sega - Mega Drive - Genesis"
+extensions = ["md", "smd", "gen", "bin"]
+default_core = "genesis_plus_gx"
+db_name = "Sega - Mega Drive - Genesis.lpl"
+
+[systems.mastersystem]
+name = "Sega - Master System - Mark III"
+extensions = ["sms", "sg"]
+default_core = "genesis_plus_gx"
+db_name = "Sega - Master System - Mark III.lpl"
+
+[systems.gamegear]
+name = "Sega - Game Gear"
+extensions = ["gg"]
+default_core = "genesis_plus_gx"
+db_name = "Sega - Game Gear.lpl"
+
+[systems.dreamcast]
+name = "Sega - Dreamcast"
+extensions = ["cdi", "gdi", "chd"]
+default_core = "flycast"
+db_name = "Sega - Dreamcast.lpl"
+
+[systems.psx]
+name = "Sony - PlayStation"
+extensions = ["iso", "cue", "bin", "img", "pbp", "chd"]
+default_core = "pcsx_rearmed"
+db_name = "Sony - PlayStation.lpl"
+
+[systems.ps2]
+name = "Sony - PlayStation 2"
+extensions = ["iso", "bin", "mdf", "nrg"]
+default_core = "pcsx2"
+db_name = "Sony - PlayStation 2.lpl"
+
+[systems.psp]
+name = "Sony - PlayStation Portable"
+extensions = ["iso", "cso", "pbp"]
+default_core = "ppsspp"
+db_name = "Sony - PlayStation Portable.lpl"
+
+[systems.atari2600]
+name = "Atari - 2600"
+extensions = ["a26", "bin"]
+default_core = "stella"
+db_name = "Atari - 2600.lpl"
+
+[systems.mame]
+name = "MAME"
+extensions = ["zip", "7z", "chd"]
+default_core = "mame"
+db_name = "MAME.lpl"

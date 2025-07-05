@@ -1,0 +1,22 @@
+[general]
+auto_download_dats = false
+create_master_playlist = true
+calculate_crc = true
+recursive_scan = true
+
+[paths]
+roms_directories = []
+output_directory = "./playlists"
+dat_directory = "./dats"
+
+[cores.override_system_cores]
+
+[cores.custom_core_paths]
+
+[dat]
+auto_download = false
+download_sources = [
+    "https://datomatic.no-intro.org/",
+    "http://redump.org/",
+]
+update_interval_days = 30
