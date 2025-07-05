@@ -76,6 +76,23 @@ cargo fmt
 cargo clippy
 ```
 
+## ⚖️ Uso Legal
+
+**IMPORTANTE**: Esta ferramenta é destinada exclusivamente para organizar e catalogar **conteúdo legal** e **backups pessoais** de jogos que você possui fisicamente.
+
+### ✅ Uso Permitido
+- Organizar ROMs criadas a partir de seus próprios cartuchos/discos
+- Validar integridade de backups pessoais
+- Converter playlists entre suas plataformas
+- Pesquisa acadêmica e preservação cultural
+
+### ❌ Uso Proibido
+- Baixar, compartilhar ou distribuir ROMs protegidas por direitos autorais
+- Usar com conteúdo obtido ilegalmente
+- Comercialização de ROMs organizadas
+
+**Veja [LEGAL_COMPLIANCE.md](LEGAL_COMPLIANCE.md) para diretrizes completas de uso legal.**
+
 ## 📝 Licença
 
 Este projeto está licenciado sob a MIT License - veja o arquivo [LICENSE](LICENSE) para detalhes.
