@@ -1,5 +1,14 @@
 # RetroArch Fast Playlist Indexer - .gitignore
 
+# Always include important documentation (override later exclusions)
+!README.md
+!LEGAL_COMPLIANCE.md
+!LICENSE
+!STATUS.md
+!CLAUDE.md
+!CHANGELOG.md
+!CONTRIBUTING.md
+
 # Rust/Cargo
 /target/
 **/*.rs.bk
@@ -79,7 +88,6 @@ config.toml
 *.rom
 *.a26
 *.a78
-*.md
 *.gen
 *.sms
 *.gg
@@ -88,6 +96,12 @@ config.toml
 *.wsc
 *.ngp
 *.ngc
+
+# Sega Genesis/Mega Drive ROM files specifically
+# (exclude .md ROM files but allow .md documentation files)
+roms/**/*.md
+**/roms/**/*.md
+test_roms/**/*.md
 
 # DAT files (can be large)
 dats/
