@@ -11,6 +11,7 @@ pub mod error;
 pub mod cache;
 pub mod archive;
 pub mod thread_monitor;
+pub mod i18n;
 
 #[cfg(feature = "watch-mode")]
 pub mod watch;

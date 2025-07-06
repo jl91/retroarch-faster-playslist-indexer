@@ -1,5 +1,5 @@
-use anyhow::{Result, Context};
-use std::io::{Read, Seek};
+use anyhow::Result;
+use std::io::Read;
 use std::path::{Path, PathBuf};
 
 #[cfg(feature = "archive-support")]

@@ -19,6 +19,7 @@ mod error;
 mod cache;
 mod archive;
 mod thread_monitor;
+mod i18n;
 #[cfg(feature = "watch-mode")]
 mod watch;
 #[cfg(feature = "dat-download")]
@@ -44,7 +45,17 @@ use cache::CrcCache;
 fn main() -> Result<()> {
     env_logger::init();
     
+    // Initialize i18n system
+    if let Err(e) = i18n::init_i18n() {
+        eprintln!("Warning: Failed to initialize localization: {}", e);
+    }
+    
     let mut args = Args::parse();
+    
+    // Set language if specified
+    if let Some(ref language) = args.language {
+        i18n::set_locale(language);
+    }
     
     // Print banner
     print_banner();

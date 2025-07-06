@@ -998,11 +998,21 @@ Contribuições são bem-vindas! Por favor:
 Sempre que uma feature for concluída com sucesso (build clean + testes passando):
 
 1. **Build Release**: Execute `cargo build --release`
-2. **Versionamento**: Atualize a versão em:
+2. **⚠️ CORREÇÃO DE WARNINGS**: Execute `cargo clippy --fix` e garanta que `cargo check` não gere warnings
+3. **Versionamento**: Atualize a versão em:
    - `Cargo.toml` (campo `version`)
    - `src/cli.rs` (atributo `version`)
    - `src/main.rs` (banner)
-3. **Diretório bin/**: Copie o executável para `bin/[OS-build]/[OS-arch]/` com versionamento:
+4. **📚 Documentação Multilíngue**: Sempre manter README.md replicado para todos os idiomas suportados:
+   - `README.md` (inglês - padrão)
+   - `README-pt.md` (português)
+   - `README-es.md` (espanhol)
+   - `README-fr.md` (francês)  
+   - `README-ja.md` (japonês)
+   - `README-de.md` (alemão)
+   - `README-ru.md` (russo)
+   - `README-zh.md` (chinês)
+5. **Diretório bin/**: Copie o executável para `bin/[OS-build]/[OS-arch]/` com versionamento:
    ```bash
    # Windows
    copy .\target\release\retroarch-indexer.exe .\bin\windows/x64/retroarch-indexer-v1.x.x.exe
@@ -1010,8 +1020,15 @@ Sempre que uma feature for concluída com sucesso (build clean + testes passando
    # Linux/macOS
    cp ./target/release/retroarch-indexer ./bin/linux/x64/retroarch-indexer-v1.x.x
    ```
-4. **Documentação**: Atualize `STATUS.md` e `README.md` conforme necessário
-5. **Histórico**: Mantenha um histórico das versões no diretório `bin/`
+6. **Documentação**: Atualize `STATUS.md` e `README.md` conforme necessário
+7. **Histórico**: Mantenha um histórico das versões no diretório `bin/`
+
+**⚠️ REGRA CRÍTICA: CORREÇÃO DE WARNINGS**
+Antes de considerar qualquer tarefa como completa:
+- Execute `cargo clippy --fix --allow-dirty --allow-staged` para correções automáticas
+- Execute `cargo check` e garanta zero warnings
+- Execute `cargo test` e garanta que todos os testes passem
+- Apenas marque uma feature como implementada se estiver livre de warnings
 
 **🎯 Estrutura do Diretório bin/:**
 ```

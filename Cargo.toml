@@ -41,6 +41,9 @@ parking_lot = "0.12.0"
 # User input
 dialoguer = "0.11.0"
 
+# Internationalization (i18n)
+lazy_static = "1.4.0"
+
 # Error handling
 anyhow = "1.0.0"
 thiserror = "2.0.12"

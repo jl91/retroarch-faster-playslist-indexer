@@ -96,6 +96,10 @@ pub struct Args {
     #[arg(long, short, action = clap::ArgAction::Count)]
     pub verbose: u8,
 
+    /// Idioma da interface (en, pt, es, fr, de, ru, zh, ja)
+    #[arg(long, value_name = "LOCALE")]
+    pub language: Option<String>,
+
     /// Gera relatório de ROMs não identificadas
     #[arg(long)]
     pub report: Option<PathBuf>,
