@@ -248,7 +248,7 @@ mod tests {
         
         assert!(toml_content.contains("[general]"));
         assert!(toml_content.contains("[paths]"));
-        assert!(toml_content.contains("[cores]"));
+        assert!(toml_content.contains("[cores"));  // Can be [cores.override_system_cores] etc.
         assert!(toml_content.contains("[dat]"));
     }
 

@@ -5,6 +5,9 @@ use std::path::{Path, PathBuf};
 #[cfg(feature = "archive-support")]
 use zip::ZipArchive;
 
+#[cfg(feature = "archive-support")]
+use sevenz_rust::{SevenZReader, Password};
+
 /// Archive entry information
 #[derive(Debug, Clone)]
 pub struct ArchiveEntry {
@@ -92,6 +95,86 @@ impl<R: Read + Seek> ArchiveReader for ZipReader<R> {
     }
 }
 
+/// 7z archive reader
+#[cfg(feature = "archive-support")]
+pub struct SevenZipReader {
+    reader: SevenZReader<std::fs::File>,
+}
+
+#[cfg(feature = "archive-support")]
+impl SevenZipReader {
+    pub fn new<P: AsRef<Path>>(path: P) -> Result<Self> {
+        let file = std::fs::File::open(path.as_ref())
+            .with_context(|| format!("Failed to open 7z file: {}", path.as_ref().display()))?;
+        
+        let reader = SevenZReader::new(file, 0, Password::empty()).map_err(|e| {
+            anyhow::anyhow!("Failed to create 7z reader: {}", e)
+        })?;
+        
+        Ok(Self { reader })
+    }
+}
+
+#[cfg(feature = "archive-support")]
+impl ArchiveReader for SevenZipReader {
+    fn list_entries(&mut self) -> Result<Vec<ArchiveEntry>> {
+        let mut entries = Vec::new();
+        
+        let archive = self.reader.archive();
+        
+        for (_i, entry) in archive.files.iter().enumerate() {
+            if entry.is_directory() {
+                continue;
+            }
+            
+            let name = entry.name().to_string();
+            let size = entry.size();
+            
+            let path = Path::new(&name);
+            let extension = path.extension()
+                .and_then(|ext| ext.to_str())
+                .unwrap_or("")
+                .to_lowercase();
+            
+            let is_rom = is_rom_extension(&extension);
+            
+            entries.push(ArchiveEntry {
+                name,
+                size,
+                is_rom,
+                extension,
+            });
+        }
+        
+        Ok(entries)
+    }
+    
+    fn extract_entry(&mut self, entry_name: &str) -> Result<Vec<u8>> {
+        let mut data = Vec::new();
+        
+        self.reader.for_each_entries(|entry, reader| {
+            if entry.name() == entry_name {
+                if std::io::copy(reader, &mut data).is_ok() {
+                    return Ok(true); // Stop iteration
+                }
+            }
+            Ok(false) // Continue iteration
+        }).map_err(|e| anyhow::anyhow!("Failed to extract 7z entry: {}", e))?;
+        
+        if data.is_empty() {
+            anyhow::bail!("Entry '{}' not found in 7z archive", entry_name);
+        }
+        
+        Ok(data)
+    }
+    
+    fn get_entry_reader(&mut self, entry_name: &str) -> Result<Box<dyn Read + '_>> {
+        // For 7z, we need to extract to memory first
+        let data = self.extract_entry(entry_name)?;
+        Ok(Box::new(std::io::Cursor::new(data)))
+    }
+}
+
 /// Check if extension is a ROM extension
 fn is_rom_extension(extension: &str) -> bool {
     matches!(extension,
@@ -125,6 +208,7 @@ fn is_rom_extension(extension: &str) -> bool {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ArchiveFormat {
     Zip,
+    SevenZip,
     Unknown,
 }
 
@@ -134,6 +218,7 @@ impl ArchiveFormat {
         
         match path.extension().and_then(|ext| ext.to_str()) {
             Some("zip") => ArchiveFormat::Zip,
+            Some("7z") => ArchiveFormat::SevenZip,
             _ => ArchiveFormat::Unknown,
         }
     }
@@ -148,6 +233,11 @@ impl ArchiveFormat {
            data.starts_with(b"PK\x05\x06") || 
            data.starts_with(b"PK\x07\x08") {
             return ArchiveFormat::Zip;
+        }
+        
+        // 7z magic: 7z\xBC\xAF\x27\x1C
+        if data.len() >= 6 && data.starts_with(b"7z\xBC\xAF\x27\x1C") {
+            return ArchiveFormat::SevenZip;
         }
         
         ArchiveFormat::Unknown
@@ -168,6 +258,10 @@ impl ArchiveReaderFactory {
                 let file = std::fs::File::open(path)
                     .with_context(|| format!("Failed to open ZIP file: {}", path.display()))?;
                 let reader = ZipReader::new(file)?;
+                Ok(Box::new(reader))
+            },
+            ArchiveFormat::SevenZip => {
+                let reader = SevenZipReader::new(path)?;
                 Ok(Box::new(reader))
             },
             ArchiveFormat::Unknown => {
@@ -229,7 +323,7 @@ mod tests {
     #[test]
     fn test_archive_format_detection() {
         assert_eq!(ArchiveFormat::detect_from_path("test.zip"), ArchiveFormat::Zip);
-        assert_eq!(ArchiveFormat::detect_from_path("test.7z"), ArchiveFormat::Unknown);
+        assert_eq!(ArchiveFormat::detect_from_path("test.7z"), ArchiveFormat::SevenZip);
         assert_eq!(ArchiveFormat::detect_from_path("test.rar"), ArchiveFormat::Unknown);
     }
     

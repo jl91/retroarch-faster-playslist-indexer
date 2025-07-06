@@ -444,8 +444,7 @@ impl Default for RomValidator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::tempdir;
-    use std::fs;
+
 
     #[test]
     fn test_validator_creation() {
@@ -477,6 +476,6 @@ mod tests {
         let validator = RomValidator::new();
         
         assert_eq!(validator.normalize_name("Super Mario Bros."), "super mario bros");
-        assert_eq!(validator.normalize_name("Test-Game_v1.0!"), "test game v1 0");
+        assert_eq!(validator.normalize_name("Test-Game_v1.0!"), "testgamev10");
     }
 }

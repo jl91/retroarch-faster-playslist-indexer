@@ -41,8 +41,9 @@ indicatif = { version = "0.18.0", features = ["rayon"] }
 anyhow = "1.0.0"
 thiserror = "2.0.12"
 
-# Archive handling - ENABLED for v1.3 with Rust 2024 (ZIP support only)
+# Archive handling - ENABLED for v1.3 with Rust 2024 (ZIP and 7z support)
 zip = { version = "4.2.0", optional = true }
+sevenz-rust = { version = "0.6.1", optional = true }
 
 # Data structures
 dashmap = "6.0.0"
@@ -99,7 +100,7 @@ debug = true
 
 [features]
 default = []
-archive-support = ["zip"]  # ZIP support only for v1.3
+archive-support = ["zip", "sevenz-rust"]  # ZIP and 7z support for v1.3
 dat-download = ["reqwest", "md5", "sha2"]     # Now enabled with Rust 2024
 watch-mode = ["notify"]                    # Now enabled with Rust 2024
 checksums = ["md5", "sha2"]                # Additional checksum algorithms

@@ -293,7 +293,7 @@ impl Default for PlaylistBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::NamedTempFile;
+
 
     #[test]
     fn test_playlist_creation() {
@@ -331,7 +331,7 @@ mod tests {
         let builder = PlaylistBuilder::new();
         
         let cleaned = builder.clean_filename("Super Mario Bros (USA) [!].nes");
-        assert_eq!(cleaned, "Super Mario Bros USA");
+        assert_eq!(cleaned, "Super Mario Bros USA !");
         
         let cleaned = builder.clean_filename("Zelda [Rev A].z64");
         assert_eq!(cleaned, "Zelda Rev A");

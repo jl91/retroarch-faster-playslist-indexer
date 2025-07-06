@@ -257,7 +257,7 @@ pub struct DetailedCacheStats {
 mod tests {
     use super::*;
     use tempfile::tempdir;
-    use std::io::Write;
+
 
     #[test]
     fn test_cache_operations() {

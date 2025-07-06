@@ -690,7 +690,7 @@ impl Default for RomDeduplicator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::tempdir;
+
 
     #[test]
     fn test_region_detection() {
@@ -710,7 +710,7 @@ mod tests {
 
     #[test]
     fn test_duplicate_group() {
-        let mut group = DuplicateGroup::new(0x12345678);
+        let group = DuplicateGroup::new(0x12345678);
         assert_eq!(group.roms.len(), 0);
         assert!(group.best_rom.is_none());
     }
