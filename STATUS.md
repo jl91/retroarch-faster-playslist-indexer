@@ -469,7 +469,6 @@ dashmap = "6.0.0"          # Threading-safe hashmap
 ✅ src/deduplicator.rs      # Deduplicação inteligente
 ✅ bin/windows/x64/         # Binário release gerado
 ✅ build-all.ps1            # Script de build Windows
-✅ KASPERSKY_SOLUTION.md    # Solução antivírus
 ```
 
 ### 🎮 Performance & Otimizações

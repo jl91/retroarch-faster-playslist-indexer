@@ -227,7 +227,6 @@ retroarch-indexer cache              # 缓存管理
 | [`CLAUDE.md`](CLAUDE.md) | 🛠️ **最佳实践**和技术架构 |
 | [`STATUS.md`](STATUS.md) | 📊 **项目状态**和当前路线图 |
 | [`LEGAL_COMPLIANCE.md`](LEGAL_COMPLIANCE.md) | ⚖️ **法律指导**使用指南 |
-| [`KASPERSKY_SOLUTION.md`](KASPERSKY_SOLUTION.md) | 🛡️ **解决方案**误报问题 |
 
 ### 完整技术文档
 

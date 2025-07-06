@@ -227,7 +227,6 @@ retroarch-indexer cache              # Cache-Verwaltung
 | [`CLAUDE.md`](CLAUDE.md) | 🛠️ **Best Practices** und technische Architektur |
 | [`STATUS.md`](STATUS.md) | 📊 **Projektstatus** und aktuelle Roadmap |
 | [`LEGAL_COMPLIANCE.md`](LEGAL_COMPLIANCE.md) | ⚖️ **Rechtliche Richtlinien** für die Nutzung |
-| [`KASPERSKY_SOLUTION.md`](KASPERSKY_SOLUTION.md) | 🛡️ **Lösung** für Fehlalarme |
 
 ### Vollständige technische Dokumentation
 

@@ -227,7 +227,6 @@ retroarch-indexer cache              # キャッシュ管理
 | [`CLAUDE.md`](CLAUDE.md) | 🛠️ **ベストプラクティス**と技術アーキテクチャ |
 | [`STATUS.md`](STATUS.md) | 📊 **プロジェクトステータス**と現在のロードマップ |
 | [`LEGAL_COMPLIANCE.md`](LEGAL_COMPLIANCE.md) | ⚖️ **法的ガイドライン**使用について |
-| [`KASPERSKY_SOLUTION.md`](KASPERSKY_SOLUTION.md) | 🛡️ **解決策**誤検出について |
 
 ### 完全な技術ドキュメント
 
