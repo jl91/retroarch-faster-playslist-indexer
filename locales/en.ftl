@@ -147,7 +147,6 @@ report-generated = 📄 Report generated: { $path }
 
 # Loading
 loading-playlist = 📄 Loading: { $filename }
-cache-stats = Cache statistics
 validation-complete = Validation complete
 deduplication-complete = Deduplication complete
 
@@ -174,3 +173,27 @@ watch-active-press-ctrl-c = ✅ Watch active! Press Ctrl+C to stop...
 
 # System download
 systems-for-download = 🎯 Systems for download: { $systems }
+systems-selected-so-far = Systems selected so far: { $count }
+system-added = ✅ System { $system } added!
+
+# Specific console configuration
+configuration-for-system = ⚙️ Configuration for: { $system }
+roms-directory-for-system = ROM directory for { $system }
+output-directory-for-system = Output directory for { $system } playlists
+create-output-directory = Create output directory '{ $path }'?
+
+# Forced system
+forced-system = 🎯 Forced System: { $system }
+forced-system-scan = ├─ Forced System: { $system }
+forcing-rom-to-system = 🎯 Forcing { $rom } to system: { $system }
+
+# Cache
+cache-size = ├─ Cache size: { $size }
+cache-entries = ├─ Entries: { $count }
+cache-hit-rate = └─ Hit rate: { $rate }%
+clearing-cache = 🗑️ Clearing cache...
+
+# Additional messages
+no-available-systems = ⚠️ No available systems found
+error-processing-system = ❌ Error processing system: { $error }
+directory-not-exist-warning = ⚠️ Directory does not exist: { $path }

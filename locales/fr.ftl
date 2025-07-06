@@ -91,6 +91,7 @@ validation-unknown = ├─ ❓ Inconnues : { $count }
 validation-homebrew = ├─ 🏠 Homebrew/Hack : { $count }
 validation-bad-dumps = ├─ ❌ Bad Dumps : { $count }
 validation-corrupted = └─ 💥 Corrompues : { $count }
+validation-complete = ✅ Validation terminée
 
 # Sélection de consoles/systèmes
 console-cores-selection = 🎯 Sélection de Consoles/Cores
@@ -103,9 +104,10 @@ system-already-selected = ⚠️ Le système { $system } a déjà été sélecti
 cache-cleared = Cache vidé
 cache-stats = Statistiques du cache
 cache-system-loaded = └─ { $system } : { $count } entrées
-cache-total-entries = ├─ Total d'entrées : { $count }
+cache-total-entries = ├─ Total des entrées : { $count }
 loading-cache = 📦 Chargement du cache pour { $platform }...
 saving-cache = 💾 Sauvegarde du cache pour { $platform }...
+watch-mode-active = ✅ Mode surveillance actif ! Appuyez sur Ctrl+C pour arrêter...
 
 # Erreurs
 error-invalid-path = Chemin invalide : { $path }
@@ -126,8 +128,11 @@ error-downloading-dats = ❌ Erreur lors du téléchargement des DATs : { $error
 error-validating-roms = ❌ Erreur lors de la validation des ROMs : { $error }
 error-deduplicating-roms = ❌ Erreur lors de la suppression des ROMs dupliquées : { $error }
 error-managing-cache = ❌ Erreur lors de la gestion du cache : { $error }
+error-processing-system = ❌ Erreur lors du traitement du système : { $error }
+directory-not-exist-warning = ⚠️ Le répertoire n'existe pas : { $path }
 no-roms-found = ⚠️ Aucune ROM trouvée dans les répertoires spécifiés
 no-lpl-files-found = ⚠️ Aucun fichier .lpl trouvé dans le répertoire spécifié
+no-available-systems = ⚠️ Aucun système disponible trouvé
 
 # Prompts interactifs
 prompt-roms-dir = Sélectionnez les répertoires de ROMs :
@@ -164,3 +169,29 @@ usage-instruction = Utilisation: {$command} --roms-dir <CHEMIN>
 error-processing-failed = ❌ {$system}: {$error}
 roms-found-summary = 📊 {$count} ROMs trouvées en {$time}s
 archives-detected = 📦 {$count} fichiers compressés détectés
+systems-selected-so-far = Systèmes sélectionnés jusqu'à présent : { $count }
+system-added = ✅ Système { $system } ajouté !
+
+# Configuration spécifique de console
+configuration-for-system = ⚙️ Configuration pour : { $system }
+roms-directory-for-system = Répertoire ROM pour { $system }
+output-directory-for-system = Répertoire de sortie pour les listes de lecture { $system }
+create-output-directory = Créer le répertoire de sortie '{ $path }' ?
+
+# Système forcé
+forced-system = 🎯 Système Forcé : { $system }
+forced-system-scan = ├─ Système Forcé : { $system }
+forcing-rom-to-system = 🎯 Forçage de { $rom } vers le système : { $system }
+
+# Mode Watch
+watch-active-press-ctrl-c = ✅ Surveillance active ! Appuyez sur Ctrl+C pour arrêter...
+
+# Téléchargement de systèmes
+systems-for-download = 🎯 Systèmes à télécharger : { $systems }
+
+# Cache
+cache-size = ├─ Taille du cache : { $size }
+cache-entries = ├─ Entrées : { $count }
+cache-hit-rate = └─ Taux de réussite : { $rate }%
+clearing-cache = 🗑️ Nettoyage du cache...
+deduplication-complete = Déduplication terminée

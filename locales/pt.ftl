@@ -93,6 +93,7 @@ validation-unknown = ├─ ❓ Desconhecidas: { $count }
 validation-homebrew = ├─ 🏠 Homebrew/Hack: { $count }
 validation-bad-dumps = ├─ ❌ Bad Dumps: { $count }
 validation-corrupted = └─ 💥 Corrompidas: { $count }
+validation-complete = ✅ Validação concluída
 
 # Seleção de consoles/sistemas
 console-cores-selection = 🎯 Seleção de Consoles/Cores
@@ -102,6 +103,7 @@ finish-selection = 🏁 Concluir seleção
 system-already-selected = ⚠️ Sistema { $system } já foi selecionado!
 systems-selected-so-far = Sistemas selecionados até agora: { $count }
 system-added = ✅ Sistema { $system } adicionado!
+no-available-systems = ⚠️ Nenhum sistema disponível encontrado
 
 # Configuração específica de console
 configuration-for-system = ⚙️ Configuração para: { $system }
@@ -124,8 +126,8 @@ automatic-mode-desc = Detecta e indexa automaticamente todos os sistemas
 select-mode = Selecione o modo
 
 # Watch mode
-watch-mode-active = ✅ Modo Watch ativo! Pressione Ctrl+C para parar...
-watch-active-press-ctrl-c = ✅ Watch ativo! Pressione Ctrl+C para parar...
+watch-mode-active = ✅ Modo de vigilância ativo! Pressione Ctrl+C para parar...
+watch-active-press-ctrl-c = ✅ Vigilância ativa! Pressione Ctrl+C para parar...
 
 # Download de sistemas
 systems-for-download = 🎯 Sistemas para download: { $systems }
@@ -137,6 +139,10 @@ cache-entries = ├─ Entradas: { $count }
 cache-hit-rate = └─ Taxa de acerto: { $rate }%
 clearing-cache = 🗑️ Limpando cache...
 cache-cleared = ✅ Cache limpo com sucesso
+cache-system-loaded = └─ { $system }: { $count } entradas
+cache-total-entries = ├─ Total de entradas: { $count }
+loading-cache = 📦 Carregando cache para { $platform }...
+saving-cache = 💾 Salvando cache para { $platform }...
 
 # Erros
 error-invalid-path = Caminho inválido: { $path }
@@ -157,6 +163,8 @@ error-downloading-dats = ❌ Erro baixando DATs: { $error }
 error-validating-roms = ❌ Erro validando ROMs: { $error }
 error-deduplicating-roms = ❌ Erro removendo ROMs duplicadas: { $error }
 error-managing-cache = ❌ Erro gerenciando cache: { $error }
+error-processing-system = ❌ Erro processando sistema: { $error }
+directory-not-exist-warning = ⚠️ Diretório não existe: { $path }
 no-roms-found = ⚠️ Nenhuma ROM encontrada nos diretórios especificados
 no-lpl-files-found = ⚠️ Nenhum arquivo .lpl encontrado no diretório especificado
 
@@ -184,3 +192,4 @@ no-system-selected = ⚠️  Nenhum sistema selecionado. Saindo...
 initialization-warning = Aviso: Falha ao inicializar localização: {$error}
 usage-instruction = Use: {$command} --roms-dir <CAMINHO>
 error-processing-failed = ❌ {$system}: {$error}
+deduplication-complete = Desduplicação concluída

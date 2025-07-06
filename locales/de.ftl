@@ -123,6 +123,7 @@ select-mode = Modus auswählen
 
 # Watch-Modus
 watch-active-press-ctrl-c = ✅ Watch aktiv! Drücken Sie Strg+C zum Stoppen...
+watch-mode-active = ✅ Überwachungsmodus aktiv! Drücken Sie Strg+C zum Stoppen...
 
 # System-Download
 systems-for-download = 🎯 Systeme zum Download: { $systems }
@@ -133,7 +134,11 @@ cache-size = ├─ Cache-Größe: { $size }
 cache-entries = ├─ Einträge: { $count }
 cache-hit-rate = └─ Trefferrate: { $rate }%
 clearing-cache = 🗑️ Leere Cache...
-cache-cleared = ✅ Cache erfolgreich geleert
+cache-cleared = Cache gelöscht
+cache-system-loaded = └─ { $system }: { $count } Einträge
+cache-total-entries = ├─ Gesamteinträge: { $count }
+loading-cache = 📦 Lade Cache für { $platform }...
+saving-cache = 💾 Speichere Cache für { $platform }...
 
 # Fehler
 error-invalid-path = Ungültiger Pfad: { $path }
@@ -186,23 +191,9 @@ usage-instruction = Verwendung: {$command} --roms-dir <PFAD>
 error-processing-failed = ❌ {$system}: {$error}
 roms-found-summary = 📊 {$count} ROMs in {$time}s gefunden
 archives-detected = 📦 {$count} komprimierte Dateien erkannt
-cache-stats = Cache-Statistiken
 validation-complete = Validierung abgeschlossen
 deduplication-complete = Deduplizierung abgeschlossen
 
 # Ausführungsmodi
-execution-mode = Ausführungsmodus
-choose-indexer-execution = Wählen Sie den Indexer-Ausführungsmodus:
-interactive-mode-console-selection = Interaktiver Modus (Konsolenauswahl)
-interactive-mode-desc = Wählen Sie spezifische Systeme zum Indexieren
-automatic-mode-scan-all = Automatischer Modus (Alles scannen)
-automatic-mode-desc = Erkennt und indexiert automatisch alle Systeme
-select-mode = Modus wählen
 
 # Systemnachrichten
-no-system-selected = ⚠️  Kein System ausgewählt. Beenden...
-initialization-warning = Warnung: Initialisierung der Lokalisierung fehlgeschlagen: {$error}
-usage-instruction = Verwendung: {$command} --roms-dir <PFAD>
-error-processing-failed = ❌ {$system}: {$error}
-roms-found-summary = 📊 {$count} ROMs in {$time}s gefunden
-archives-detected = 📦 {$count} komprimierte Dateien erkannt

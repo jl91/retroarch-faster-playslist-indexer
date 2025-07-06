@@ -93,6 +93,7 @@ validation-unknown = ├─ ❓ Desconocidas: { $count }
 validation-homebrew = ├─ 🏠 Homebrew/Hack: { $count }
 validation-bad-dumps = ├─ ❌ Bad Dumps: { $count }
 validation-corrupted = └─ 💥 Corruptas: { $count }
+validation-complete = ✅ Validación completa
 
 # Selección de consolas/sistemas
 console-cores-selection = 🎯 Selección de Consolas/Cores
@@ -108,6 +109,7 @@ cache-system-loaded = └─ { $system }: { $count } entradas
 cache-total-entries = ├─ Total de entradas: { $count }
 loading-cache = 📦 Cargando caché para { $platform }...
 saving-cache = 💾 Guardando caché para { $platform }...
+watch-mode-active = ✅ Modo de vigilancia activo! Presione Ctrl+C para detener...
 
 # Errores
 error-invalid-path = Ruta inválida: { $path }
@@ -128,8 +130,11 @@ error-downloading-dats = ❌ Error descargando DATs: { $error }
 error-validating-roms = ❌ Error validando ROMs: { $error }
 error-deduplicating-roms = ❌ Error eliminando ROMs duplicadas: { $error }
 error-managing-cache = ❌ Error gestionando caché: { $error }
+error-processing-system = ❌ Error procesando sistema: { $error }
 no-roms-found = ⚠️ No se encontraron ROMs en los directorios especificados
+no-available-systems = ⚠️ No se encontraron sistemas disponibles
 no-lpl-files-found = ⚠️ No se encontraron archivos .lpl en el directorio especificado
+directory-not-exist-warning = ⚠️ El directorio no existe: { $path }
 
 # Prompts interactivos
 prompt-roms-dir = Seleccione los directorios de ROMs:
@@ -146,6 +151,7 @@ batch-conversion-complete = ✅ Conversión por lotes completada:
 successful-conversions = ├─ Exitosas: { $count }
 failed-conversions = ├─ Fallidas: { $count }
 report-generated = 📄 Reporte generado: { $path }
+deduplication-complete = ✅ Desduplicación completa
 
 # Carga
 loading-playlist = 📄 Cargando: { $filename }
@@ -164,3 +170,29 @@ no-system-selected = ⚠️  Ningún sistema seleccionado. Saliendo...
 initialization-warning = Advertencia: Error al inicializar la localización: {$error}
 usage-instruction = Uso: {$command} --roms-dir <RUTA>
 error-processing-failed = ❌ {$system}: {$error}
+
+systems-selected-so-far = Sistemas seleccionados hasta ahora: { $count }
+system-added = ✅ Sistema { $system } añadido!
+
+# Configuración específica de consola
+configuration-for-system = ⚙️ Configuración para: { $system }
+roms-directory-for-system = Directorio de ROMs para { $system }
+output-directory-for-system = Directorio de salida para listas de reproducción de { $system }
+create-output-directory = ¿Crear directorio de salida '{ $path }'?
+
+# Sistema forzado
+forced-system = 🎯 Sistema Forzado: { $system }
+forced-system-scan = ├─ Sistema Forzado: { $system }
+forcing-rom-to-system = 🎯 Forzando { $rom } al sistema: { $system }
+
+# Modo Watch
+watch-active-press-ctrl-c = ✅ Vigilancia activa! Presione Ctrl+C para detener...
+
+# Descarga de sistemas
+systems-for-download = 🎯 Sistemas para descarga: { $systems }
+
+# Cache
+cache-size = ├─ Tamaño del cache: { $size }
+cache-entries = ├─ Entradas: { $count }
+cache-hit-rate = └─ Tasa de aciertos: { $rate }%
+clearing-cache = 🗑️ Limpiando cache...
