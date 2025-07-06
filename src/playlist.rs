@@ -236,6 +236,26 @@ impl PlaylistBuilder {
         Ok(playlist)
     }
 
+    pub fn build_single_system_playlist(&self, roms: &[RomFile], forced_system: &str) -> Result<Playlist> {
+        let mut playlist = Playlist::new();
+        
+        // Set default core for this system
+        if let Some((core_path, core_name)) = self.core_mapper.get_default_core(forced_system, self.target_platform) {
+            playlist = playlist.with_default_core(core_path, core_name);
+        }
+
+        // Add all ROMs to the playlist as if they belong to the forced system
+        for rom in roms {
+            let item = self.create_playlist_item(rom, forced_system)?;
+            playlist.add_item(item);
+        }
+
+        playlist.sort_by_label();
+        playlist.deduplicate();
+
+        Ok(playlist)
+    }
+
     fn create_playlist_item(&self, rom: &RomFile, system: &str) -> Result<PlaylistItem> {
         // Convert path to target platform format
         let converted_path = self.path_converter.convert_rom_path(

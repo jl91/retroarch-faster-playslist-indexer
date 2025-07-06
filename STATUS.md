@@ -131,7 +131,7 @@ A aplicação **RetroArch Fast Playlist Indexer** foi migrada para **Rust 2024**
 ```
 
 **Playlists geradas corretamente com**:
-- ✅ Caminhos convertidos para Switch (`/switch/roms/...`)
+- ✅ Caminhos convertidos para Switch (`/retroarch/roms/...`)
 - ✅ Cores corretos (`_libretro_libnx.a`)
 - ✅ CRC32 calculado
 - ✅ Formato JSON válido

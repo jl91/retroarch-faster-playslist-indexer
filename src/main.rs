@@ -42,12 +42,26 @@ use validator::RomValidator;
 use deduplicator::RomDeduplicator;
 use cache::CrcCache;
 
+#[derive(Debug, Clone)]
+enum ExecutionMode {
+    Interactive,
+    Automatic,
+}
+
+#[derive(Debug, Clone)]
+struct ConsoleConfig {
+    system_name: String,
+    roms_dir: PathBuf,
+    output_dir: PathBuf,
+    force_system: bool, // Force all ROMs to be of the selected system
+}
+
 fn main() -> Result<()> {
     env_logger::init();
     
     // Initialize i18n system
-    if let Err(e) = i18n::init_i18n() {
-        eprintln!("Warning: Failed to initialize localization: {}", e);
+    if let Err(e) = i18n::init() {
+        eprintln!("{}", i18n::t_with_arg("initialization-warning", &e.to_string()));
     }
     
     let mut args = Args::parse();
@@ -85,8 +99,16 @@ fn main() -> Result<()> {
             handle_cache_command(action.clone())?;
         }
         None => {
-            // Modo interativo para comando index se parâmetros necessários não forem fornecidos
-            handle_index_command_with_prompts(&mut args)?;
+            // Ask which mode the user wants to use
+            let mode = prompt_for_execution_mode()?;
+            match mode {
+                ExecutionMode::Interactive => {
+                    handle_interactive_console_selection(&mut args)?;
+                }
+                ExecutionMode::Automatic => {
+                    handle_index_command_with_prompts(&mut args)?;
+                }
+            }
         }
     }
     
@@ -94,23 +116,23 @@ fn main() -> Result<()> {
 }
 
 fn print_banner() {
-    println!("{}", "🎮 RetroArch Fast Playlist Indexer v1.3.3".bright_cyan().bold());
-    println!("{}", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━".cyan());
+    println!("{}", i18n::t("app-header").bright_cyan().bold());
+    println!("{}", i18n::t("app-separator").cyan());
     println!();
 }
 
-/// Prompt interativo para obter diretórios de ROMs do usuário
+/// Interactive prompt to get ROM directories from user
 fn prompt_for_roms_dirs() -> Result<Vec<PathBuf>> {
-    println!("{}", "📂 Configuração de Diretórios de ROMs".bright_cyan().bold());
+    println!("{}", i18n::t("rom-directories-config").bright_cyan().bold());
     println!();
     
     let mut roms_dirs = Vec::new();
     
     loop {
         let prompt_text = if roms_dirs.is_empty() {
-            "Digite o caminho do diretório de ROMs"
+            i18n::t("roms-dir-prompt")
         } else {
-            "Digite outro diretório de ROMs (ou Enter para continuar)"
+            i18n::t("roms-dir-prompt-additional")
         };
         
         let input = Input::<String>::new()
@@ -125,20 +147,20 @@ fn prompt_for_roms_dirs() -> Result<Vec<PathBuf>> {
         let path = PathBuf::from(input.trim());
         
         if !path.exists() {
-            println!("{} Diretório não encontrado: {}", "⚠️".yellow(), path.display());
+            println!("{}", i18n::t_path("directory-not-found", &path.display().to_string()).yellow());
             continue;
         }
         
         if !path.is_dir() {
-            println!("{} Não é um diretório: {}", "⚠️".yellow(), path.display());
+            println!("{}", i18n::t_path("not-a-directory", &path.display().to_string()).yellow());
             continue;
         }
         
         roms_dirs.push(path.clone());
-        println!("{} Adicionado: {}", "✅".green(), path.display());
+        println!("{}", i18n::t_path("directory-added", &path.display().to_string()).green());
         
         if roms_dirs.len() >= 10 {
-            println!("{} Limite máximo de diretórios atingido", "⚠️".yellow());
+            println!("{}", i18n::t("max-directories-reached").yellow());
             break;
         }
     }
@@ -146,9 +168,9 @@ fn prompt_for_roms_dirs() -> Result<Vec<PathBuf>> {
     Ok(roms_dirs)
 }
 
-/// Prompt interativo para obter plataformas
+/// Interactive prompt to get platforms
 fn prompt_for_platforms() -> Result<(Platform, Platform)> {
-    println!("{}", "🔄 Configuração de Plataformas".bright_cyan().bold());
+    println!("{}", i18n::t("platforms-configuration").bright_cyan().bold());
     println!();
     
     let platforms = vec![
@@ -165,46 +187,46 @@ fn prompt_for_platforms() -> Result<(Platform, Platform)> {
         .map(|p| p.display_name())
         .collect();
     
-    println!("Selecione a plataforma de {} (onde você está executando):", "origem".bright_yellow());
+    println!("{}", i18n::t_with_arg("select-source-platform", &i18n::t("source")));
     let source_index = Select::new()
         .items(&platform_names)
         .default(0)
         .interact()?;
     
     println!();
-    println!("Selecione a plataforma de {} (onde será usado):", "destino".bright_green());
+    println!("{}", i18n::t_with_arg("select-target-platform", &i18n::t("target")));
     let target_index = Select::new()
         .items(&platform_names)
-        .default(if source_index == 3 { 0 } else { 3 }) // Switch por padrão se não for origem
+        .default(if source_index == 3 { 0 } else { 3 }) // Switch by default if not source
         .interact()?;
     
     Ok((platforms[source_index], platforms[target_index]))
 }
 
-/// Prompt interativo para obter diretório de saída
+/// Interactive prompt to get output directory
 fn prompt_for_output_dir() -> Result<PathBuf> {
-    println!("{}", "📁 Configuração de Diretório de Saída".bright_cyan().bold());
+    println!("{}", i18n::t("output-directory-config").bright_cyan().bold());
     println!();
     
     let default_output = "./playlists";
     
     let output = Input::<String>::new()
-        .with_prompt("Digite o diretório de saída para playlists")
+        .with_prompt(i18n::t("output-dir-prompt"))
         .default(default_output.to_string())
         .interact()?;
     
     let output_path = PathBuf::from(output.trim());
     
-    // Criar diretório se não existir
+    // Create directory if it doesn't exist
     if !output_path.exists() {
         let create = Confirm::new()
-            .with_prompt(format!("Diretório não existe. Criar '{}'?", output_path.display()))
+            .with_prompt(i18n::t_with_arg("create-directory-prompt", &output_path.display().to_string()))
             .default(true)
             .interact()?;
         
         if create {
             std::fs::create_dir_all(&output_path)?;
-            println!("{} Diretório criado: {}", "✅".green(), output_path.display());
+            println!("{}", i18n::t_path("directory-created", &output_path.display().to_string()).green());
         }
     }
     
@@ -213,8 +235,8 @@ fn prompt_for_output_dir() -> Result<PathBuf> {
 
 fn handle_index_command(args: Args) -> Result<()> {
     if args.roms_dirs.is_empty() {
-        eprintln!("{}", "❌ Erro: Pelo menos um diretório de ROMs deve ser especificado".red());
-        eprintln!("Use: {} --roms-dir <PATH>", "retroarch-indexer".cyan());
+        eprintln!("{}", i18n::t("error-roms-dir-required").red());
+        eprintln!("{}", i18n::t_with_arg("usage-instruction", "retroarch-indexer").cyan());
         std::process::exit(1);
     }
 
@@ -224,12 +246,9 @@ fn handle_index_command(args: Args) -> Result<()> {
     // Determine platforms
     let (source_platform, target_platform) = determine_platforms(&args, &config)?;
     
-    println!("📂 Escaneando: {}", format_paths(&args.roms_dirs));
-    println!("🔄 Conversão: {} → {}", 
-        source_platform.display_name().bright_yellow(),
-        target_platform.display_name().bright_green()
-    );
-    println!("🧵 Threads: {}", args.threads.unwrap_or_else(num_cpus::get));
+    println!("{}", i18n::t_path("scanning-directory", &format_paths(&args.roms_dirs)));
+    println!("{}", i18n::t_conversion(&source_platform.display_name(), &target_platform.display_name()));
+    println!("{}", i18n::t_count("threads-info", args.threads.unwrap_or_else(num_cpus::get) as i32));
     println!();
 
     // Initialize scanner
@@ -246,11 +265,11 @@ fn handle_index_command(args: Args) -> Result<()> {
     let mut archives_found = 0;
     
     for (index, roms_dir) in args.roms_dirs.iter().enumerate() {
-        println!("🔍 Escaneando diretório {} de {}: {}", 
-            (index + 1).to_string().bright_yellow(), 
-            args.roms_dirs.len().to_string().bright_yellow(),
-            roms_dir.display().to_string().bright_blue()
-        );
+        println!("{}", i18n::t_directory_progress(
+            index + 1, 
+            args.roms_dirs.len(), 
+            &roms_dir.display().to_string()
+        ).bright_yellow());
         
         let start_time = std::time::Instant::now();
         let roms = scanner.scan_directory(roms_dir)?;
@@ -263,14 +282,14 @@ fn handle_index_command(args: Args) -> Result<()> {
         total_scanned_files += roms.len();
         
         if args.verbose > 0 {
-            println!("   📊 {} ROMs encontradas em {:.2}s", 
-                roms.len().to_string().bright_green(),
-                scan_duration.as_secs_f32().to_string().bright_cyan()
-            );
+            let mut args_map = std::collections::HashMap::new();
+            args_map.insert("count".to_string(), roms.len().to_string());
+            args_map.insert("time".to_string(), format!("{:.2}", scan_duration.as_secs_f32()));
+            println!("   {}", i18n::t_with_args("roms-found-summary", &args_map).bright_green());
             if dir_archives > 0 {
-                println!("   📦 {} arquivos comprimidos detectados", 
-                    dir_archives.to_string().bright_magenta()
-                );
+                let mut args_map = std::collections::HashMap::new();
+                args_map.insert("count".to_string(), dir_archives.to_string());
+                println!("   {}", i18n::t_with_args("archives-detected", &args_map).bright_magenta());
             }
         }
         
@@ -278,16 +297,16 @@ fn handle_index_command(args: Args) -> Result<()> {
     }
 
     if all_roms.is_empty() {
-        println!("{}", "⚠️  Nenhuma ROM encontrada nos diretórios especificados".yellow());
+        println!("{}", i18n::t("no-roms-found").yellow());
         return Ok(());
     }
 
     // Show scanning summary
-    println!("\n📈 {} do Escaneamento:", "Resumo".bright_cyan().bold());
-    println!("├─ Total de ROMs: {}", total_scanned_files.to_string().bright_green());
-    println!("├─ Diretórios escaneados: {}", args.roms_dirs.len().to_string().bright_blue());
+    println!("\n{} {}", "📈".bright_cyan().bold(), i18n::t("scan-summary").bright_cyan().bold());
+    println!("{}", i18n::t_count("total-roms", total_scanned_files as i32).bright_green());
+    println!("{}", i18n::t_count("directories-scanned", args.roms_dirs.len() as i32).bright_blue());
     if archives_found > 0 {
-        println!("├─ Arquivos comprimidos: {}", archives_found.to_string().bright_magenta());
+        println!("{}", i18n::t_count("archives-found", archives_found as i32).bright_magenta());
     }
     println!("└─ Threads utilizadas: {}", args.threads.unwrap_or_else(num_cpus::get).to_string().bright_yellow());
     println!();
@@ -341,16 +360,16 @@ fn handle_index_command(args: Args) -> Result<()> {
         println!("├─ {}.lpl", system_name);
     }
     if !args.skip_master {
-        println!("└─ roms.lpl (playlist master com {} ROMs)", total_roms.to_string().bright_green());
+        println!("{}", i18n::t_count("master-playlist-info", total_roms as i32).replace(&total_roms.to_string(), &total_roms.to_string().bright_green().to_string()));
     }
 
     // Generate report if requested
     if let Some(report_path) = args.report {
         generate_report(&all_roms, &playlists_by_system, &report_path)?;
-        println!("\n📄 Relatório gerado: {}", report_path.display().to_string().bright_blue());
+        println!("\n{}", i18n::t_path("report-generated", &report_path.display().to_string()).bright_blue());
     }
 
-    println!("\n{}", "🎉 Indexação concluída com sucesso!".bright_green().bold());
+    println!("\n{}", i18n::t("indexing-complete").bright_green().bold());
     
     Ok(())
 }
@@ -362,7 +381,7 @@ fn handle_convert_command(
     output_dir: Option<PathBuf>,
     validate_paths: bool,
 ) -> Result<()> {
-    println!("🔄 Modo Conversão de Playlist");
+    println!("{}", i18n::t("playlist-conversion-mode"));
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
     let converter = PlaylistConverter::new()
@@ -383,7 +402,7 @@ fn handle_convert_command(
     println!("✅ Plataforma detectada: {}", source_platform.display_name().bright_yellow());
     
     // Convert playlist
-    println!("🎯 Convertendo para: {}", target.display_name().bright_green());
+    println!("{}", i18n::t_with_arg("converting-to", &target.display_name().to_string()).bright_green());
     let converted_playlist = converter.convert_playlist(&playlist, source_platform, target)?;
 
     // Determine output path
@@ -412,7 +431,7 @@ fn handle_convert_all_command(
     output_dir: Option<PathBuf>,
     validate_paths: bool,
 ) -> Result<()> {
-    println!("🔄 Modo Conversão em Lote");
+    println!("{}", i18n::t("batch-conversion-mode"));
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
     let converter = PlaylistConverter::new()
@@ -427,7 +446,7 @@ fn handle_convert_all_command(
         .collect();
 
     if lpl_files.is_empty() {
-        println!("{}", "⚠️  Nenhum arquivo .lpl encontrado no diretório especificado".yellow());
+        println!("{}", i18n::t("no-lpl-files-found").yellow());
         return Ok(());
     }
 
@@ -477,12 +496,12 @@ fn handle_convert_all_command(
         pb.inc(1);
     }
 
-    pb.finish_with_message("Conversão concluída");
+    pb.finish_with_message("Conversion completed");
 
-    println!("\n✅ Conversão em lote concluída:");
+    println!("\n{}", i18n::t("batch-conversion-complete"));
     println!("   {} playlists convertidas com sucesso", converted_count.to_string().bright_green());
     if error_count > 0 {
-        println!("   {} erros encontrados", error_count.to_string().bright_red());
+        println!("{}", i18n::t_count("errors-found", error_count));
     }
     println!("   Arquivos salvos em: {}", out_dir.display().to_string().bright_blue());
 
@@ -496,11 +515,11 @@ fn handle_watch_command(
     batch_size: usize,
     include_archives: bool,
 ) -> Result<()> {
-    println!("👀 Modo Watch Ativado");
+    println!("{}", i18n::t("watch-mode-active"));
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
     if args.roms_dirs.is_empty() {
-        eprintln!("{}", "❌ Erro: Pelo menos um diretório de ROMs deve ser especificado".red());
+        eprintln!("{}", i18n::t("error-roms-dir-required").red());
         std::process::exit(1);
     }
 
@@ -520,13 +539,13 @@ fn handle_watch_command(
         println!("👁️  Monitorando: {}", dir.display().to_string().bright_blue());
     }
 
-    println!("\n🔧 Configurações:");
+    println!("\n{}", i18n::t("settings"));
     println!("├─ Debounce: {}ms", debounce);
     println!("├─ Batch Size: {} arquivos", batch_size);
-    println!("├─ Incluir Archives: {}", if include_archives { "Sim" } else { "Não" });
+    println!("{}", i18n::t_with_arg("include-archives", if include_archives { &i18n::t("yes") } else { &i18n::t("no") }));
     println!("└─ Output: {}", args.output_dir.display());
 
-    println!("\n{}", "✅ Watch ativo! Pressione Ctrl+C para parar...".bright_green());
+    println!("\n{}", i18n::t("watch-active-press-ctrl-c").bright_green());
     
     // Start watching
     watch_service.start_watching()?;
@@ -541,7 +560,7 @@ fn handle_download_dats_command(
     force: bool,
     timeout: u64,
 ) -> Result<()> {
-    println!("📥 Download Automático de DATs");
+    println!("{}", i18n::t("dat-download"));
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
     std::fs::create_dir_all(&output_dir)?;
@@ -553,13 +572,13 @@ fn handle_download_dats_command(
     let systems_to_download = if let Some(systems) = systems {
         systems
     } else {
-        println!("📋 Obtendo lista de sistemas disponíveis...");
+        println!("{}", i18n::t("getting-systems-list"));
         downloader.get_available_systems()?
     };
 
-    println!("🎯 Sistemas para download: {}", systems_to_download.join(", "));
-    println!("📁 Diretório de destino: {}", output_dir.display());
-    println!("🔄 Forçar re-download: {}", if force { "Sim" } else { "Não" });
+    println!("{}", i18n::t_with_arg("systems-for-download", &systems_to_download.join(", ")));
+    println!("{}", i18n::t_path("destination-directory", &output_dir.display().to_string()));
+    println!("{}", i18n::t_with_arg("force-redownload", if force { &i18n::t("yes") } else { &i18n::t("no") }));
     println!();
 
     let pb = ProgressBar::new(systems_to_download.len() as u64);
@@ -579,7 +598,10 @@ fn handle_download_dats_command(
                 success_count += 1;
             }
             Err(e) => {
-                eprintln!("❌ {}: {}", system, e);
+                let mut args = std::collections::HashMap::new();
+                args.insert("system".to_string(), system.to_string());
+                args.insert("error".to_string(), e.to_string());
+                eprintln!("{}", i18n::t_with_args("error-processing-failed", &args).red());
                 error_count += 1;
             }
         }
@@ -587,12 +609,12 @@ fn handle_download_dats_command(
         pb.inc(1);
     }
 
-    pb.finish_with_message("Download concluído");
+    pb.finish_with_message("Download completed");
 
     println!("\n📊 Resultado do Download:");
     println!("├─ ✅ Sucessos: {}", success_count.to_string().bright_green());
     if error_count > 0 {
-        println!("├─ ❌ Erros: {}", error_count.to_string().bright_red());
+        println!("{}", i18n::t_count("errors-count", error_count));
     }
     println!("└─ 📁 Salvos em: {}", output_dir.display().to_string().bright_blue());
 
@@ -605,11 +627,11 @@ fn handle_validate_command(
     report: Option<PathBuf>,
     systems: Option<Vec<String>>,
 ) -> Result<()> {
-    println!("🔍 Validação de Integridade");
+    println!("{}", i18n::t("integrity-validation-title"));
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
     if args.roms_dirs.is_empty() {
-        eprintln!("{}", "❌ Erro: Pelo menos um diretório de ROMs deve ser especificado".red());
+        eprintln!("{}", i18n::t("error-roms-dir-required").red());
         std::process::exit(1);
     }
 
@@ -625,7 +647,7 @@ fn handle_validate_command(
                 validator.load_dat_collection(system, &dat_path)?;
                 println!("✅ Carregado: {}", system);
             } else {
-                println!("⚠️  DAT não encontrado: {}", dat_path.display());
+                println!("{}", i18n::t_path("dat-not-found-warning", &dat_path.display().to_string()));
             }
         }
     } else {
@@ -664,21 +686,22 @@ fn handle_validate_command(
     let validation_report = validator.validate_collection(&all_roms)?;
 
     // Print summary
-    println!("\n📊 Resultado da Validação:");
-    println!("├─ Total: {}", validation_report.total_roms);
-    println!("├─ ✅ Válidas: {} ({:.1}%)", 
-        validation_report.valid_roms, 
-        (validation_report.valid_roms as f64 / validation_report.total_roms as f64) * 100.0);
-    println!("├─ 🔄 Precisam Renomear: {}", validation_report.renamed_roms);
-    println!("├─ ❓ Desconhecidas: {}", validation_report.unknown_roms);
-    println!("├─ 🏠 Homebrew/Hack: {}", validation_report.homebrew_roms);
-    println!("├─ ❌ Bad Dumps: {}", validation_report.bad_dumps);
-    println!("└─ 💥 Corrompidas: {}", validation_report.corrupted_roms);
+    println!("{}", i18n::t("validation-results-title"));
+    println!("{}", i18n::t_count("validation-total", validation_report.total_roms as i32));
+    println!("{}", i18n::t_validation_valid(
+        validation_report.valid_roms as i32,
+        validation_report.valid_roms as f64 / validation_report.total_roms as f64 * 100.0
+    ));
+    println!("{}", i18n::t_count("validation-need-rename", validation_report.renamed_roms as i32));
+    println!("{}", i18n::t_count("validation-unknown", validation_report.unknown_roms as i32));
+    println!("{}", i18n::t_count("validation-homebrew", validation_report.homebrew_roms as i32));
+    println!("{}", i18n::t_count("validation-bad-dumps", validation_report.bad_dumps as i32));
+    println!("{}", i18n::t_count("validation-corrupted", validation_report.corrupted_roms as i32));
 
     // Generate detailed report if requested
     if let Some(report_path) = report {
         validator.generate_report(&all_roms, &report_path)?;
-        println!("\n📄 Relatório detalhado salvo em: {}", report_path.display().to_string().bright_blue());
+        println!("\n📄 Detailed report saved to: {}", report_path.display().to_string().bright_blue());
     }
 
     Ok(())
@@ -693,11 +716,11 @@ fn handle_deduplicate_command(
     backup_dir: Option<PathBuf>,
     report: Option<PathBuf>,
 ) -> Result<()> {
-    println!("🗂️  Deduplicação Inteligente");
+    println!("{}", i18n::t("intelligent-deduplication"));
     println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 
     if args.roms_dirs.is_empty() {
-        eprintln!("{}", "❌ Erro: Pelo menos um diretório de ROMs deve ser especificado".red());
+        eprintln!("{}", i18n::t("error-roms-dir-required").red());
         std::process::exit(1);
     }
 
@@ -741,10 +764,10 @@ fn handle_deduplicate_command(
         return Ok(());
     }
 
-    println!("🎯 Estratégia: {:?}", strategy);
-    println!("🔍 Total de ROMs: {}", all_roms.len());
+    println!("🎯 Strategy: {:?}", strategy);
+    println!("{}", i18n::t_count("total-roms-found", all_roms.len() as i32));
     if dry_run {
-        println!("🚫 Modo simulação ativado - nenhum arquivo será removido");
+        println!("{}", i18n::t("simulation-mode-active"));
     }
     println!();
 
@@ -752,24 +775,24 @@ fn handle_deduplicate_command(
     let dedup_report = deduplicator.deduplicate(&all_roms)?;
 
     // Print results
-    println!("📊 Resultado da Deduplicação:");
+    println!("{}", i18n::t("deduplication-results"));
     println!("├─ Grupos de duplicatas: {}", dedup_report.duplicate_groups);
-    println!("├─ ROMs duplicadas encontradas: {}", dedup_report.duplicates_found);
+    println!("├─ Duplicate ROMs found: {}", dedup_report.duplicates_found);
     println!("├─ ROMs removidas: {}", dedup_report.files_removed);
-    println!("├─ Espaço liberado: {}", format_size(dedup_report.space_freed));
+    println!("├─ Space freed: {}", format_size(dedup_report.space_freed));
     if backup && dedup_report.files_removed > 0 {
         println!("├─ Backup criado em: {}", dedup_report.backup_location.as_ref().unwrap_or(&"N/A".to_string()));
     }
-    println!("└─ ROMs únicas restantes: {}", all_roms.len() - dedup_report.files_removed);
+    println!("└─ Unique ROMs remaining: {}", all_roms.len() - dedup_report.files_removed);
 
     // Save detailed report if requested
     if let Some(report_path) = report {
         deduplicator.generate_report(&dedup_report, &report_path)?;
-        println!("\n📄 Relatório detalhado salvo em: {}", report_path.display().to_string().bright_blue());
+        println!("\n📄 Detailed report saved to: {}", report_path.display().to_string().bright_blue());
     }
 
     if !dry_run && dedup_report.files_removed > 0 {
-        println!("\n{}", "✅ Deduplicação concluída com sucesso!".bright_green());
+        println!("\n{}", i18n::t("deduplication-complete").bright_green());
     }
 
     Ok(())
@@ -788,15 +811,15 @@ fn handle_cache_command(action: CacheAction) -> Result<()> {
         }
         CacheAction::Stats => {
             let stats = cache.get_stats()?;
-            println!("📊 Estatísticas do Cache:");
-            println!("├─ Total de entradas: {}", stats.total_entries);
+            println!("📊 Cache Statistics:");
+            println!("{}", i18n::t_count("total-cache-entries", stats.total_entries as i32));
             println!("├─ Tamanho do cache: {}", format_size(stats.cache_size));
             println!("├─ Hits: {} ({:.1}%)", stats.cache_hits, 
                 if stats.total_requests > 0 { 
                     (stats.cache_hits as f64 / stats.total_requests as f64) * 100.0 
                 } else { 0.0 });
             println!("├─ Misses: {}", stats.cache_misses);
-            println!("└─ Última atualização: {}", stats.last_updated);
+            println!("└─ Last updated: {}", stats.last_updated);
         }
         CacheAction::Clean { max_age } => {
             let removed = cache.clean_old_entries(max_age)?;
@@ -825,7 +848,7 @@ fn determine_platforms(args: &Args, config: &Config) -> Result<(Platform, Platfo
         .or(config.general.source_platform)
         .unwrap_or_else(|| {
             // Interactive platform selection for source
-            select_platform("origem (onde está executando)", &[
+            select_platform("source (where it's running)", &[
                 Platform::Windows,
                 Platform::Linux,
                 Platform::MacOS,
@@ -838,7 +861,7 @@ fn determine_platforms(args: &Args, config: &Config) -> Result<(Platform, Platfo
         .or(config.general.target_platform)
         .unwrap_or_else(|| {
             // Interactive platform selection for target
-            select_platform("destino (onde será usado)", &[
+            select_platform("target (where it will be used)", &[
                 Platform::Windows,
                 Platform::Linux,
                 Platform::MacOS,
@@ -870,7 +893,7 @@ fn select_platform(description: &str, platforms: &[Platform]) -> Platform {
                 }
             }
         }
-        println!("{}", "❌ Seleção inválida. Tente novamente.".red());
+        println!("{}", "❌ Invalid selection. Try again.".red());
     }
 }
 
@@ -878,7 +901,7 @@ fn format_paths(paths: &[PathBuf]) -> String {
     if paths.len() == 1 {
         paths[0].display().to_string()
     } else {
-        format!("{} diretórios", paths.len())
+        i18n::t_with_arg("directories-count", &paths.len().to_string())
     }
 }
 
@@ -888,24 +911,24 @@ fn generate_report(
     report_path: &PathBuf
 ) -> Result<()> {
     // TODO: Implement detailed report generation
-    std::fs::write(report_path, "# Relatório de Indexação\n\nRelatório em desenvolvimento...")?;
+    std::fs::write(report_path, "# Indexing Report\n\nReport in development...")?;
     Ok(())
 }
 
-/// Função principal para lidar com indexação com prompts interativos
+/// Main function to handle indexing with interactive prompts
 fn handle_index_command_with_prompts(args: &mut Args) -> Result<()> {
-    // Se não foram fornecidos diretórios de ROMs via CLI, perguntar interativamente
+    // If no ROM directories were provided via CLI, ask interactively
     if args.roms_dirs.is_empty() {
         match prompt_for_roms_dirs() {
             Ok(dirs) => args.roms_dirs = dirs,
             Err(e) => {
-                eprintln!("{} Erro ao obter diretórios de ROMs: {}", "❌".red(), e);
+                eprintln!("{}", i18n::t_with_arg("error-getting-roms-dirs", &e.to_string()).red());
                 std::process::exit(1);
             }
         }
     }
     
-    // Se não foram fornecidas plataformas via CLI, perguntar interativamente
+    // If no platforms were provided via CLI, ask interactively
     if args.source_platform.is_none() || args.target_platform.is_none() {
         match prompt_for_platforms() {
             Ok((source, target)) => {
@@ -917,16 +940,16 @@ fn handle_index_command_with_prompts(args: &mut Args) -> Result<()> {
                 }
             }
             Err(e) => {
-                eprintln!("{} Erro ao obter plataformas: {}", "❌".red(), e);
+                eprintln!("{}", i18n::t_with_arg("error-getting-platforms", &e.to_string()).red());
                 std::process::exit(1);
             }
         }
     }
     
-    // Se o diretório de saída for o padrão, perguntar se o usuário quer alterar
+    // If output directory is default, ask if user wants to change it
     if args.output_dir == PathBuf::from("./playlists") {
         let use_default = Confirm::new()
-            .with_prompt("Usar diretório de saída padrão './playlists'?")
+            .with_prompt(&i18n::t("use-default-output-dir"))
             .default(true)
             .interact()?;
         
@@ -934,7 +957,7 @@ fn handle_index_command_with_prompts(args: &mut Args) -> Result<()> {
             match prompt_for_output_dir() {
                 Ok(output_dir) => args.output_dir = output_dir,
                 Err(e) => {
-                    eprintln!("{} Erro ao obter diretório de saída: {}", "❌".red(), e);
+                    eprintln!("{}", i18n::t_with_arg("error-getting-output-dir", &e.to_string()).red());
                     std::process::exit(1);
                 }
             }
@@ -943,4 +966,400 @@ fn handle_index_command_with_prompts(args: &mut Args) -> Result<()> {
     
     // Agora executar o comando index normal
     handle_index_command(args.clone())
+}
+
+/// Prompt to choose execution mode
+fn prompt_for_execution_mode() -> Result<ExecutionMode> {
+    println!("{}", i18n::t("execution-mode").bright_cyan().bold());
+    println!();
+    
+    let modes = vec![
+        i18n::t("interactive-mode-console-selection"),
+        i18n::t("automatic-mode-scan-all")
+    ];
+    
+    let mode_descriptions = vec![
+        i18n::t("interactive-mode-desc"),
+        i18n::t("automatic-mode-desc")
+    ];
+    
+    println!("{}", i18n::t("choose-indexer-execution").bright_white());
+    for (i, (mode, desc)) in modes.iter().zip(mode_descriptions.iter()).enumerate() {
+        println!("  {}. {} - {}", (i + 1).to_string().bright_yellow(), mode.bright_green(), desc.bright_black());
+    }
+    println!();
+    
+    let selection = Select::new()
+        .with_prompt(&i18n::t("select-mode"))
+        .items(&modes)
+        .default(0)
+        .interact()?;
+    
+    match selection {
+        0 => Ok(ExecutionMode::Interactive),
+        1 => Ok(ExecutionMode::Automatic),
+        _ => Ok(ExecutionMode::Automatic),
+    }
+}
+
+/// Function to handle interactive console selection
+fn handle_interactive_console_selection(args: &mut Args) -> Result<()> {
+    println!("{}", i18n::t("console-cores-selection").bright_cyan().bold());
+    println!();
+    
+    // Get list of available systems
+    let core_mapper = core_mapper::CoreMapper::new();
+    let available_systems = get_available_systems(&core_mapper);
+    
+    if available_systems.is_empty() {
+        eprintln!("{}", i18n::t("no-available-systems").red());
+        std::process::exit(1);
+    }
+    
+    // Prompt for system selection
+    let selected_systems = prompt_for_system_selection(&available_systems)?;
+    
+    if selected_systems.is_empty() {
+        println!("{}", i18n::t("no-system-selected").yellow());
+        return Ok(());
+    }
+    
+    // For each selected system, configure directories
+    let mut console_configs = Vec::new();
+    for system_name in selected_systems {
+        let config = prompt_for_console_config(&system_name)?;
+        console_configs.push(config);
+    }
+    
+    // Configure platforms if not specified
+    if args.source_platform.is_none() || args.target_platform.is_none() {
+        match prompt_for_platforms() {
+            Ok((source, target)) => {
+                if args.source_platform.is_none() {
+                    args.source_platform = Some(source);
+                }
+                if args.target_platform.is_none() {
+                    args.target_platform = Some(target);
+                }
+            }
+            Err(e) => {
+                eprintln!("{}", i18n::t_with_arg("error-getting-platforms", &e.to_string()).red());
+                std::process::exit(1);
+            }
+        }
+    }
+    
+    // Process each configured console
+    for config in console_configs {
+        println!("\n{} Processando: {}", "🔄".bright_blue(), config.system_name.bright_green());
+        
+        // Configure args temporarily for this console
+        let mut temp_args = args.clone();
+        temp_args.roms_dirs = vec![config.roms_dir.clone()];
+        temp_args.output_dir = config.output_dir;
+        
+        // In interactive mode, force the specific system
+        if config.force_system {
+            temp_args.system = Some(config.system_name.clone());
+        }
+        
+        // Execute indexing for this specific console
+        match handle_index_command_forced_system(temp_args, &config.system_name) {
+            Ok(_) => println!("  {} {}", "✅".green(), i18n::t("completed-successfully").bright_green()),
+            Err(e) => {
+                eprintln!("  {}", i18n::t_with_arg("error-processing-system", &format!("{}: {}", config.system_name, e)).red());
+                continue;
+            }
+        }
+    }
+    
+    println!("\n{}", i18n::t("processing-all-consoles-complete").bright_green().bold());
+    Ok(())
+}
+
+/// Get list of available systems from core mapper
+fn get_available_systems(_core_mapper: &core_mapper::CoreMapper) -> Vec<String> {
+    // Since get_supported_systems() is not available, let's create manually
+    vec![
+        "Nintendo - Nintendo 64".to_string(),
+        "Nintendo - Super Nintendo Entertainment System".to_string(),
+        "Nintendo - Game Boy Advance".to_string(),
+        "Nintendo - Game Boy Color".to_string(),
+        "Nintendo - Game Boy".to_string(),
+        "Nintendo - Nintendo Entertainment System".to_string(),
+        "Sega - Mega Drive - Genesis".to_string(),
+        "Sega - Master System - Mark III".to_string(),
+        "Sega - Game Gear".to_string(),
+        "Sony - PlayStation".to_string(),
+        "MAME".to_string(),
+        "Arcade".to_string(),
+    ]
+}
+
+/// Prompt for system selection
+fn prompt_for_system_selection(available_systems: &[String]) -> Result<Vec<String>> {
+    println!("{}", i18n::t("available-systems-consoles").bright_white());
+    
+    // Group systems by manufacturer for better visualization
+    let mut grouped_systems: std::collections::HashMap<String, Vec<&String>> = std::collections::HashMap::new();
+    
+    for system in available_systems {
+        let manufacturer = if system.starts_with("Nintendo") {
+            "Nintendo"
+        } else if system.starts_with("Sega") {
+            "Sega"
+        } else if system.starts_with("Sony") {
+            "Sony"
+        } else {
+            "Arcade/Outros"
+        };
+        
+        grouped_systems.entry(manufacturer.to_string())
+            .or_insert_with(Vec::new)
+            .push(system);
+    }
+    
+    // Mostrar sistemas agrupados
+    for (manufacturer, systems) in &grouped_systems {
+        println!("\n  {}:", manufacturer.bright_cyan().bold());
+        for system in systems {
+            println!("    • {}", system.bright_white());
+        }
+    }
+    
+    println!();
+    
+    let mut selected_systems = Vec::new();
+    
+    loop {
+        let selection = Select::new()
+            .with_prompt(&i18n::t("select-system-or-finish"))
+            .items(&{
+                let mut items = available_systems.to_vec();
+                items.push(i18n::t("finish-selection"));
+                items
+            })
+            .interact()?;
+        
+        if selection == available_systems.len() {
+            // "Finish selection" was chosen
+            break;
+        }
+        
+        let selected_system = &available_systems[selection];
+        
+        if selected_systems.contains(selected_system) {
+            println!("  {}", i18n::t_with_arg("system-already-selected", &selected_system).yellow());
+        } else {
+            selected_systems.push(selected_system.clone());
+            println!("  {}", i18n::t_with_arg("system-added", &selected_system).green());
+        }
+        
+        println!("\n{}", i18n::t_with_arg("systems-selected-so-far", &selected_systems.len().to_string()).bright_blue());
+        for system in &selected_systems {
+            println!("  • {}", system.bright_green());
+        }
+        println!();
+        
+        let continue_selection = Confirm::new()
+            .with_prompt("Selecionar mais sistemas?")
+            .default(true)
+            .interact()?;
+        
+        if !continue_selection {
+            break;
+        }
+    }
+    
+    Ok(selected_systems)
+}
+
+/// Prompt for specific console configuration
+fn prompt_for_console_config(system_name: &str) -> Result<ConsoleConfig> {
+    println!("\n{}", i18n::t_with_arg("configuration-for-system", system_name).bright_blue());
+    println!();
+    
+    // Prompt for ROMs directory
+    let roms_dir = Input::<String>::new()
+        .with_prompt(&i18n::t_with_arg("roms-directory-for-system", system_name))
+        .interact()?;
+    
+    let roms_path = PathBuf::from(roms_dir.trim());
+    
+    if !roms_path.exists() {
+        eprintln!("{}", i18n::t_path("directory-not-exist-warning", &roms_path.display().to_string()).yellow());
+        let continue_anyway = Confirm::new()
+            .with_prompt("Continuar mesmo assim?")
+            .default(false)
+            .interact()?;
+        
+        if !continue_anyway {
+            return prompt_for_console_config(system_name);
+        }
+    }
+    
+    // Prompt for output directory
+    let default_output = format!("./playlists/{}", system_name.replace(" - ", "_").replace(" ", "_"));
+    
+    let output_dir = Input::<String>::new()
+        .with_prompt(&i18n::t_with_arg("output-directory-for-system", system_name))
+        .default(default_output.clone())
+        .interact()?;
+    
+    let output_path = PathBuf::from(output_dir.trim());
+    
+    // Create output directory if it doesn't exist
+    if !output_path.exists() {
+        let create = Confirm::new()
+            .with_prompt(&i18n::t_path("create-output-directory", &output_path.display().to_string()))
+            .default(true)
+            .interact()?;
+        
+        if create {
+            std::fs::create_dir_all(&output_path)?;
+            println!("  {}", i18n::t_path("directory-created", &output_path.display().to_string()).green());
+        }
+    }
+    
+    Ok(ConsoleConfig {
+        system_name: system_name.to_string(),
+        roms_dir: roms_path,
+        output_dir: output_path,
+        force_system: true, // In interactive mode, always force the selected system
+    })
+}
+
+/// Function for indexing with forced system (interactive mode)
+fn handle_index_command_forced_system(args: Args, forced_system: &str) -> Result<()> {
+    if args.roms_dirs.is_empty() {
+        eprintln!("{}", i18n::t("error-roms-dir-required").red());
+        eprintln!("{}", i18n::t_with_arg("usage-instruction", "retroarch-indexer").cyan());
+        std::process::exit(1);
+    }
+
+    // Load or create config
+    let config = Config::load_or_create(args.config.as_deref())?;
+    
+    // Determine platforms
+    let (source_platform, target_platform) = determine_platforms(&args, &config)?;
+    
+    println!("{}", i18n::t_path("scanning-directory", &format_paths(&args.roms_dirs)));
+    println!("{}", i18n::t_with_arg("forced-system", forced_system).bright_cyan());    println!("{}", i18n::t_conversion(&source_platform.display_name(), &target_platform.display_name()).bright_yellow());
+    println!("🧵 Threads: {}", args.threads.unwrap_or_else(num_cpus::get));
+    println!();
+
+    // Initialize scanner
+    let scanner = Scanner::new()
+        .with_threads(args.threads.unwrap_or_else(num_cpus::get))
+        .with_recursive(!args.no_recursive)
+        .with_calculate_crc(!args.no_crc)
+        .with_extensions(args.extensions.as_deref())
+        .with_verbose(args.verbose > 0);
+
+    // Scan all ROM directories
+    let mut all_roms = Vec::new();
+    let mut total_scanned_files = 0;
+    let mut archives_found = 0;
+    
+    for (index, roms_dir) in args.roms_dirs.iter().enumerate() {
+        let mut args_map = std::collections::HashMap::new();
+        args_map.insert("current".to_string(), (index + 1).to_string());
+        args_map.insert("total".to_string(), args.roms_dirs.len().to_string());
+        args_map.insert("path".to_string(), roms_dir.display().to_string());
+        println!("{}", i18n::t_with_args("scanning-directory-indexed", &args_map));
+        
+        let start_time = std::time::Instant::now();
+        let mut roms = scanner.scan_directory(roms_dir)?;
+        let scan_duration = start_time.elapsed();
+        
+        // FORCE ALL ROMS TO SELECTED SYSTEM
+        for rom in &mut roms {
+            rom.system = Some(forced_system.to_string());
+            let mut args_map = std::collections::HashMap::new();
+            args_map.insert("filename".to_string(), rom.path.file_name().unwrap_or_default().to_string_lossy().to_string());
+            args_map.insert("system".to_string(), forced_system.to_string());
+            println!("  {}", i18n::t_with_args("forcing-rom-to-system", &args_map));
+        }
+        
+        // Count archives
+        let dir_archives = roms.iter().filter(|rom| rom.is_archive).count();
+        archives_found += dir_archives;
+        
+        total_scanned_files += roms.len();
+        
+        if args.verbose > 0 {
+            let mut args_map = std::collections::HashMap::new();
+            args_map.insert("count".to_string(), roms.len().to_string());
+            args_map.insert("time".to_string(), format!("{:.2}", scan_duration.as_secs_f32()));
+            println!("   {}", i18n::t_with_args("roms-found-summary", &args_map).bright_green());
+            if dir_archives > 0 {
+                let mut args_map = std::collections::HashMap::new();
+                args_map.insert("count".to_string(), dir_archives.to_string());
+                println!("   {}", i18n::t_with_args("archives-detected", &args_map).bright_magenta());
+            }
+        }
+        
+        all_roms.extend(roms);
+    }
+
+    if all_roms.is_empty() {
+        println!("{}", i18n::t("no-roms-found").yellow());
+        return Ok(());
+    }
+
+    // Show scanning summary
+    println!("\n📈 {} do Escaneamento:", "Resumo".bright_cyan().bold());
+    println!("{}", i18n::t_count("total-roms-stat", total_scanned_files as i32).bright_green());
+    println!("{}", i18n::t_with_arg("forced-system-scan", forced_system).bright_cyan());
+    println!("{}", i18n::t_with_arg("directories-scanned", &args.roms_dirs.len().to_string()).bright_blue());
+    if archives_found > 0 {
+        println!("├─ Arquivos comprimidos: {}", archives_found.to_string().bright_magenta());
+    }
+    println!("└─ Threads utilizadas: {}", args.threads.unwrap_or_else(num_cpus::get).to_string().bright_yellow());
+    println!();
+
+    // Load DAT files if available
+    let dat_collection = if let Some(dat_dir) = &args.dat_dir {
+        dat_parser::DatCollection::load_directory(dat_dir)?
+    } else {
+        dat_parser::DatCollection::new()
+    };
+
+    // Build playlists - only for forced system
+    let playlist_builder = PlaylistBuilder::new()
+        .with_platforms(source_platform, target_platform)
+        .with_dat_collection(dat_collection)
+        .with_verbose(args.verbose > 0);
+
+    // Create output directory
+    std::fs::create_dir_all(&args.output_dir)?;
+
+    // Generate playlist only for forced system
+    let mut playlists_by_system = std::collections::HashMap::new();
+    let playlist = playlist_builder.build_single_system_playlist(&all_roms, forced_system)?;
+    playlists_by_system.insert(forced_system.to_string(), playlist);
+    
+    // Save playlist
+    let filename = format!("{}.lpl", forced_system);
+    let output_path = args.output_dir.join(&filename);
+    if let Some(playlist) = playlists_by_system.get(forced_system) {
+        playlist.save(&output_path)?;
+        
+        println!("📊 Sistema Processado:");
+        println!("└─ {}: {} ROMs", forced_system.bright_white(), playlist.items.len().to_string().bright_green());
+    }
+    
+    // Success summary
+    println!("{}", i18n::t("indexing-completed-success").bright_green().bold());
+    println!("{}", i18n::t_count("roms-processed", total_scanned_files as i32).bright_green());
+    println!("├─ Sistema: {}", forced_system.bright_cyan());
+    println!("├─ Playlists geradas: 1");
+    println!("{}", i18n::t_path("output-directory", &args.output_dir.display().to_string()).bright_blue());
+    
+    // Generate report if requested
+    if let Some(report_path) = &args.report {
+        generate_report(&all_roms, &playlists_by_system, report_path)?;
+    }
+    
+    Ok(())
 }

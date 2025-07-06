@@ -114,8 +114,14 @@ full = ["archive-support", "dat-download", "watch-mode", "checksums"]
 ### Grundlegende Verwendung
 
 ```bash
-# ROMs scannen und Playlists erstellen
+# Interaktiver Modus - Spezifische Konsolen zum Synchronisieren auswählen
 retroarch-indexer --roms-dir /pfad/zu/roms
+# Das Tool fragt Sie nach der Auswahl zwischen:
+# 1. Interaktiver Modus - Konsolen-Auswahl
+# 2. Automatischer Modus - Alle Verzeichnisse scannen
+
+# Automatischer Modus (traditionelles Verhalten)
+retroarch-indexer --roms-dir /pfad/zu/roms --auto
 
 # Interface-Sprache angeben
 retroarch-indexer --language de --roms-dir /pfad/zu/roms
@@ -125,6 +131,51 @@ retroarch-indexer convert Nintendo\ 64.lpl --target switch
 
 # Batch-Konvertierung
 retroarch-indexer convert-all --input-dir ./playlists --source windows --target switch
+```
+
+### 🎯 Interaktiver Modus (Neue Funktion)
+
+Der Interaktive Modus ermöglicht:
+- **Spezifische Konsolen auswählen** zur Verarbeitung statt alles zu scannen
+- **ROM-Verzeichnisse einzeln konfigurieren** für jede Konsole
+- **Alle ROMs zwingen** als zur ausgewählten Konsole gehörend behandelt zu werden
+- **Genau eine Playlist generieren** pro Konsole (ignoriert Auto-Erkennung)
+
+**Ablauf des Interaktiven Modus:**
+1. Wählen Sie "Interaktiver Modus - Konsolen-Auswahl"
+2. Wählen Sie welche Systeme verarbeitet werden sollen (Nintendo 64, SNES, etc.)
+3. Für jedes System spezifizieren Sie:
+   - ROM-Verzeichnis-Pfad
+   - Ausgabeverzeichnis für Playlists
+4. Das Tool verarbeitet jede Konsole separat und stellt sicher, dass alle ROMs als zum ausgewählten System gehörend behandelt werden
+
+**Beispiel einer Interaktiven Sitzung:**
+```
+🎮 Ausführungsmodus
+Wählen Sie, wie Sie den Indexer ausführen möchten:
+  1. Interaktiver Modus - Konsolen-Auswahl - Wählen Sie welche Konsolen/Cores synchronisiert werden
+  2. Automatischer Modus - Alle Verzeichnisse scannen - Alle bereitgestellten Verzeichnisse automatisch scannen
+
+Modus auswählen: 1
+
+🎯 Konsolen/Core-Auswahl
+Verfügbare Systeme/Konsolen:
+  Nintendo:
+    • Nintendo - Nintendo 64
+    • Nintendo - Super Nintendo Entertainment System
+    • Nintendo - Game Boy Advance
+
+System zur Konfiguration auswählen: Nintendo - Nintendo 64
+
+⚙️ Konfiguration für: Nintendo - Nintendo 64
+ROM-Verzeichnis für Nintendo - Nintendo 64: /pfad/zu/n64/roms
+Ausgabeverzeichnis: ./playlists
+
+🔄 Verarbeitung: Nintendo - Nintendo 64
+🎯 Zwinge alle ROMs zum System: Nintendo - Nintendo 64
+📊 System Verarbeitet:
+└─ Nintendo - Nintendo 64: 25 ROMs
+✅ Erfolgreich abgeschlossen
 ```
 
 ### Erweiterte Verwendung (v1.3.3)
@@ -193,6 +244,7 @@ Das System erkennt automatisch die Betriebssystemsprache und fällt auf Englisch
 ## ✨ Funktionen (v1.3.0)
 
 - **🚀 15-17x schneller** als RetroArchs nativer Scanner
+- **🎯 Interaktiver Modus** für selektive Konsolen-Verarbeitung
 - **🔄 Automatische Konvertierung** von Pfaden zwischen Plattformen
 - **📋 Einheitliche Master-Playlist** mit allen ROMs
 - **🎮 Universelle Unterstützung** für alle ROM-Formate

@@ -82,8 +82,6 @@ roms-processed = ├─ ROMs procesadas: { $count }
 archives-found = ├─ Archivos encontrados: { $count }
 scan-time = └─ Tiempo de escaneo: { $time }s
 total-cache-entries = ├─ Total de entradas: { $count }
-roms-found-summary = 📊 {$count} ROMs encontradas en {$time}s
-archives-detected = 📦 {$count} archivos comprimidos detectados
 
 # Validación
 validation-total = ├─ Total: { $count }
@@ -149,20 +147,3 @@ report-generated = 📄 Reporte generado: { $path }
 
 # Carga
 loading-playlist = 📄 Cargando: { $filename }
-
-# Modos de ejecución
-execution-mode = Modo de Ejecución
-choose-indexer-execution = Elija el modo de ejecución del indexador:
-interactive-mode-console-selection = Modo Interactivo (Selección de Consolas)
-interactive-mode-desc = Seleccione sistemas específicos para indexar
-automatic-mode-scan-all = Modo Automático (Escanear Todo)
-automatic-mode-desc = Detecta e indexa automáticamente todos los sistemas
-select-mode = Seleccione el modo
-
-# Mensajes del sistema
-no-system-selected = ⚠️  Ningún sistema seleccionado. Saliendo...
-initialization-warning = Advertencia: Error al inicializar la localización: {$error}
-usage-instruction = Uso: {$command} --roms-dir <RUTA>
-error-processing-failed = ❌ {$system}: {$error}
-roms-found-summary = 📊 {$count} ROMs encontradas en {$time}s
-archives-detected = 📦 {$count} archivos comprimidos detectados

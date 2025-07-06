@@ -147,20 +147,3 @@ report-generated = 📄 Rapport généré : { $path }
 
 # Chargement
 loading-playlist = 📄 Chargement : { $filename }
-
-# Modes d'exécution
-execution-mode = Mode d'Exécution
-choose-indexer-execution = Choisissez le mode d'exécution de l'indexeur :
-interactive-mode-console-selection = Mode Interactif (Sélection de Consoles)
-interactive-mode-desc = Sélectionnez des systèmes spécifiques à indexer
-automatic-mode-scan-all = Mode Automatique (Scanner Tout)
-automatic-mode-desc = Détecte et indexe automatiquement tous les systèmes
-select-mode = Sélectionnez le mode
-
-# Messages système
-no-system-selected = ⚠️  Aucun système sélectionné. Sortie...
-initialization-warning = Avertissement: Échec de l'initialisation de la localisation: {$error}
-usage-instruction = Utilisation: {$command} --roms-dir <CHEMIN>
-error-processing-failed = ❌ {$system}: {$error}
-roms-found-summary = 📊 {$count} ROMs trouvées en {$time}s
-archives-detected = 📦 {$count} fichiers compressés détectés

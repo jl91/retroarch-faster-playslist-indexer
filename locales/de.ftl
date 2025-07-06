@@ -51,3 +51,20 @@ cache-cleared = Cache geleert
 cache-stats = Cache-Statistiken
 validation-complete = Validierung abgeschlossen
 deduplication-complete = Deduplizierung abgeschlossen
+
+# Ausführungsmodi
+execution-mode = Ausführungsmodus
+choose-indexer-execution = Wählen Sie den Indexer-Ausführungsmodus:
+interactive-mode-console-selection = Interaktiver Modus (Konsolenauswahl)
+interactive-mode-desc = Wählen Sie spezifische Systeme zum Indexieren
+automatic-mode-scan-all = Automatischer Modus (Alles scannen)
+automatic-mode-desc = Erkennt und indexiert automatisch alle Systeme
+select-mode = Modus wählen
+
+# Systemnachrichten
+no-system-selected = ⚠️  Kein System ausgewählt. Beenden...
+initialization-warning = Warnung: Initialisierung der Lokalisierung fehlgeschlagen: {$error}
+usage-instruction = Verwendung: {$command} --roms-dir <PFAD>
+error-processing-failed = ❌ {$system}: {$error}
+roms-found-summary = 📊 {$count} ROMs in {$time}s gefunden
+archives-detected = 📦 {$count} komprimierte Dateien erkannt

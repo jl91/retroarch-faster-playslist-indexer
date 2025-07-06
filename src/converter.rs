@@ -297,7 +297,7 @@ mod tests {
         let converter = PlaylistConverter::new();
         
         assert_eq!(
-            converter.detect_platform_from_path("/switch/roms/game.rom"),
+            converter.detect_platform_from_path("/retroarch/roms/game.rom"),
             Some(Platform::Switch)
         );
     }

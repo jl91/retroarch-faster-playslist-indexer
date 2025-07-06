@@ -75,11 +75,3 @@ indexing-complete = 🎉 索引完成成功！
 
 # 加载中
 loading-playlist = 📄 正在加载: { $filename }
-
-# 系统消息
-no-system-selected = ⚠️  未选择系统。正在退出...
-initialization-warning = 警告：初始化本地化失败：{$error}
-usage-instruction = 用法：{$command} --roms-dir <路径>
-error-processing-failed = ❌ {$system}：{$error}
-roms-found-summary = 📊 在{$time}秒内找到{$count}个ROM
-archives-detected = 📦 检测到{$count}个压缩文件

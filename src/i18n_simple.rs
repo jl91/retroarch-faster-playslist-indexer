@@ -184,7 +184,7 @@ pub fn t_with_args(key: &str, args: &HashMap<String, String>) -> String {
     }
 }
 
-pub fn t_count(key: &str, count: i32) -> String {
+pub fn t_count(key: &str, count: usize) -> String {
     let mut args = HashMap::new();
     args.insert("count".to_string(), count.to_string());
     t_with_args(key, &args)
@@ -214,21 +214,6 @@ pub fn t_platform(key: &str, platform: &str) -> String {
     t_with_args(key, &args)
 }
 
-pub fn t_conversion(source: &str, target: &str) -> String {
-    let mut args = HashMap::new();
-    args.insert("source".to_string(), source.to_string());
-    args.insert("target".to_string(), target.to_string());
-    t_with_args("conversion", &args)
-}
-
-pub fn t_directory_progress(current: usize, total: usize, path: &str) -> String {
-    let mut args = HashMap::new();
-    args.insert("current".to_string(), current.to_string());
-    args.insert("total".to_string(), total.to_string());
-    args.insert("path".to_string(), path.to_string());
-    t_with_args("scanning-directory-progress", &args)
-}
-
 pub fn get_current_locale() -> String {
     if let Some(instance) = I18N_INSTANCE.get() {
         let i18n = instance.read().unwrap();
@@ -245,19 +230,4 @@ pub fn available_locales() -> Vec<String> {
     } else {
         vec!["pt".to_string(), "en".to_string()]
     }
-}
-
-pub fn t_with_array_args(key: &str, args: &[&str]) -> String {
-    let mut args_map = HashMap::new();
-    for (i, value) in args.iter().enumerate() {
-        args_map.insert(format!("arg{}", i), value.to_string());
-    }
-    t_with_args(key, &args_map)
-}
-
-pub fn t_validation_valid(count: i32, percentage: f64) -> String {
-    let mut args = HashMap::new();
-    args.insert("count".to_string(), count.to_string());
-    args.insert("percentage".to_string(), format!("{:.1}", percentage));
-    t_with_args("validation-valid", &args)
 }

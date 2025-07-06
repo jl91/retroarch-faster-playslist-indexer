@@ -31,8 +31,8 @@ core_extension = "_android.so"
 
 [platforms.switch]
 name = "Nintendo Switch"
-roms_prefix = "/switch/roms"
-cores_prefix = "/switch/retroarch/cores"
+roms_prefix = "/retroarch/roms"
+cores_prefix = "/retroarch/cores"
 path_separator = "/"
 core_extension = "_libnx.a"
 

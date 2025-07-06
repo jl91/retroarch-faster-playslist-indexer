@@ -114,8 +114,14 @@ full = ["archive-support", "dat-download", "watch-mode", "checksums"]
 ### 基本的な使用方法
 
 ```bash
-# ROMをスキャンしてプレイリストを作成
+# インタラクティブモード - 同期する特定のコンソールを選択
 retroarch-indexer --roms-dir /path/to/roms
+# ツールが次から選択するよう促します：
+# 1. インタラクティブモード - コンソール選択
+# 2. 自動モード - すべてのディレクトリをスキャン
+
+# 自動モード（従来の動作）
+retroarch-indexer --roms-dir /path/to/roms --auto
 
 # インターフェース言語を指定
 retroarch-indexer --language ja --roms-dir /path/to/roms
@@ -125,6 +131,51 @@ retroarch-indexer convert Nintendo\ 64.lpl --target switch
 
 # バッチ変換
 retroarch-indexer convert-all --input-dir ./playlists --source windows --target switch
+```
+
+### 🎯 インタラクティブモード（新機能）
+
+インタラクティブモードでは以下が可能です：
+- すべてをスキャンする代わりに**特定のコンソールを選択**して処理
+- 各コンソールに対して**ROMディレクトリを個別に設定**
+- **すべてのROM**を選択したコンソールに属するものとして強制的に扱う
+- コンソールごとに**正確に1つのプレイリストを生成**（自動検出を無視）
+
+**インタラクティブモードのワークフロー：**
+1. "インタラクティブモード - コンソール選択"を選択
+2. 処理するシステムを選択（Nintendo 64、SNES等）
+3. 各システムに対して以下を指定：
+   - ROMディレクトリパス
+   - プレイリストの出力ディレクトリ
+4. ツールは各コンソールを個別に処理し、すべてのROMが選択されたシステムに属するものとして扱われることを保証
+
+**インタラクティブセッションの例：**
+```
+🎮 実行モード
+インデクサーの実行方法を選択してください：
+  1. インタラクティブモード - コンソール選択 - 同期するコンソール/コアを選択
+  2. 自動モード - すべてのディレクトリをスキャン - 提供されたすべてのディレクトリを自動的にスキャン
+
+モードを選択: 1
+
+🎯 コンソール/コア選択
+利用可能なシステム/コンソール：
+  Nintendo:
+    • Nintendo - Nintendo 64
+    • Nintendo - Super Nintendo Entertainment System
+    • Nintendo - Game Boy Advance
+
+設定するシステムを選択: Nintendo - Nintendo 64
+
+⚙️ Nintendo - Nintendo 64の設定
+Nintendo - Nintendo 64のROMディレクトリ: /path/to/n64/roms
+出力ディレクトリ: ./playlists
+
+🔄 処理中: Nintendo - Nintendo 64
+🎯 すべてのROMをシステムに強制: Nintendo - Nintendo 64
+📊 処理されたシステム:
+└─ Nintendo - Nintendo 64: 25 ROMs
+✅ 正常に完了
 ```
 
 ### 高度な使用方法 (v1.3.3)
@@ -193,6 +244,7 @@ retroarch-indexer --language zh   # 中国語
 ## ✨ 機能 (v1.3.0)
 
 - **🚀 15-17倍高速** RetroArchのネイティブスキャナーより
+- **🎯 インタラクティブモード** 選択的なコンソール処理用
 - **🔄 自動変換** プラットフォーム間でのパス変換
 - **📋 統一マスタープレイリスト** 全ROMを含む
 - **🎮 ユニバーサルサポート** 全ROMフォーマット対応

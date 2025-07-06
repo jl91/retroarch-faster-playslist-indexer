@@ -609,8 +609,8 @@ roms_prefix = "D:/Games/ROMs"
 cores_prefix = "C:/RetroArch/cores"
 
 [paths.switch]
-roms_prefix = "/switch/roms"
-cores_prefix = "/switch/retroarch/cores"
+roms_prefix = "/retroarch/roms"
+cores_prefix = "/retroarch/cores"
 
 [paths.raspberry]
 roms_prefix = "/home/pi/RetroPie/roms"
@@ -691,17 +691,17 @@ A playlist master contém TODAS as ROMs de todos os sistemas em um único arquiv
   "label_display_mode": 0,
   "items": [
     {
-      "path": "/switch/roms/n64/Mario64.z64",
+      "path": "/retroarch/roms/n64/Mario64.z64",
       "label": "Super Mario 64 (USA)",
-      "core_path": "/switch/retroarch/cores/mupen64plus_next_libretro_libnx.a",
+      "core_path": "/retroarch/cores/mupen64plus_next_libretro_libnx.a",
       "core_name": "Mupen64Plus-Next",
       "crc32": "93A3B7F9|crc",
       "db_name": "Nintendo - Nintendo 64.lpl"
     },
     {
-      "path": "/switch/roms/snes/SuperMetroid.sfc",
+      "path": "/retroarch/roms/snes/SuperMetroid.sfc",
       "label": "Super Metroid (USA)",
-      "core_path": "/switch/retroarch/cores/snes9x_libretro_libnx.a",
+      "core_path": "/retroarch/cores/snes9x_libretro_libnx.a",
       "core_name": "Snes9x",
       "crc32": "D63ED5F8|crc",
       "db_name": "Nintendo - Super Nintendo Entertainment System.lpl"
@@ -888,7 +888,7 @@ O sistema converte automaticamente os caminhos baseado nas plataformas:
 
 ```rust
 // Windows → Switch
-"D:\\Games\\ROMs\\n64\\Mario64.z64" → "/switch/roms/n64/Mario64.z64"
+"D:\\Games\\ROMs\\n64\\Mario64.z64" → "/retroarch/roms/n64/Mario64.z64"
 "C:\\RetroArch\\cores\\mupen64plus_next_libretro.dll" → "/switch/retroarch/cores/mupen64plus_next_libretro_libnx.a"
 
 // Linux → Android

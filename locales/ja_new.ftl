@@ -69,14 +69,6 @@ error-platform-unsupported = サポートされていないプラットフォー
 error-roms-dir-required = ❌ エラー: 少なくとも1つのROMディレクトリを指定してください
 no-roms-found = ⚠️ 指定されたディレクトリにROMが見つかりません
 
-# システムメッセージ
-no-system-selected = ⚠️  システムが選択されていません。終了しています...
-initialization-warning = 警告: ローカライゼーションの初期化に失敗しました: {$error}
-usage-instruction = 使用法: {$command} --roms-dir <パス>
-error-processing-failed = ❌ {$system}: {$error}
-roms-found-summary = 📊 {$count} ROMが{$time}秒で見つかりました
-archives-detected = 📦 {$count} 圧縮ファイルが検出されました
-
 # 成功メッセージ
 playlists-created = プレイリストが正常に作成されました
 indexing-complete = 🎉 インデックス化が正常に完了しました！

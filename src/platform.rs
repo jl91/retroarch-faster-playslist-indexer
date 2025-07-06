@@ -45,7 +45,7 @@ impl Platform {
             Platform::Linux => "/home/user/ROMs",
             Platform::MacOS => "/Users/user/ROMs",
             Platform::Android => "/storage/emulated/0/RetroArch/roms",
-            Platform::Switch => "/switch/roms",
+            Platform::Switch => "/retroarch/roms",
             Platform::Raspberry => "/home/pi/RetroPie/roms",
             Platform::SteamDeck => "/home/deck/ROMs",
         }
@@ -152,7 +152,7 @@ impl PlatformPathConverter {
             "roms/", "ROMs/", "games/", "Games/", 
             "/roms/", "/ROMs/", "/games/", "/Games/",
             "RetroPie/roms/", "RetroArch/roms/",
-            "/switch/roms/", "/storage/emulated/0/RetroArch/roms/",
+            "/retroarch/roms/", "/storage/emulated/0/RetroArch/roms/",
         ];
 
         for pattern in &patterns {
@@ -217,7 +217,7 @@ mod tests {
         
         let windows_path = "D:\\ROMs\\n64\\Super Mario 64.z64";
         let switch_path = converter.convert_rom_path(windows_path);
-        assert!(switch_path.contains("/switch/roms"));
+        assert!(switch_path.contains("/retroarch/roms"));
         assert!(switch_path.contains("Super Mario 64.z64"));
     }
 
