@@ -78,11 +78,17 @@ impl RomFile {
             "ws" | "wsc" => Some("Bandai - WonderSwan".to_string()),
             "neo" => Some("SNK - Neo Geo".to_string()),
 
-            // MAME/Arcade - Common extensions for MAME ROMs
-            "zip" | "7z" if self.is_mame() => Some("MAME".to_string()),
-
-            // Archives that could contain anything (after MAME check)
-            "zip" | "7z" | "rar" => self.detect_system_from_path(),
+            // Archives - handle with better priority logic
+            "zip" | "7z" | "rar" => {
+                // First, check if it's explicitly in a MAME directory structure
+                if self.is_mame() {
+                    Some("MAME".to_string())
+                } else {
+                    // For archives not in MAME directories, be more conservative
+                    // Only detect other systems if there are very clear indicators
+                    self.detect_system_from_path_conservative()
+                }
+            },
 
             _ => None,
         }
@@ -126,20 +132,71 @@ impl RomFile {
 
     fn is_mame(&self) -> bool {
         let path_str = self.path.to_string_lossy().to_lowercase();
+        let filename = self.filename.to_lowercase();
+        
         // Check for common MAME directory names and patterns
-        path_str.contains("mame") || 
-        path_str.contains("arcade") ||
-        path_str.contains("roms/mame") ||
-        path_str.contains("roms\\mame") ||
-        path_str.contains("/mame/") ||
-        path_str.contains("\\mame\\") ||
+        if path_str.contains("mame") || 
+           path_str.contains("arcade") ||
+           path_str.contains("roms/mame") ||
+           path_str.contains("roms\\mame") ||
+           path_str.contains("/mame/") ||
+           path_str.contains("\\mame\\") {
+            return true;
+        }
+        
         // Common MAME subdirectories
-        path_str.contains("/roms/") && (
+        if path_str.contains("/roms/") && (
             path_str.contains("cps") ||     // Capcom Play System
             path_str.contains("neogeo") ||  // Neo Geo
             path_str.contains("fbneo") ||   // FinalBurn Neo
             path_str.contains("fba")        // FinalBurn Alpha
-        )
+        ) {
+            return true;
+        }
+        
+        // For ZIP/7Z files, use a more permissive approach
+        // Most ZIP files in emulation contexts are MAME ROMs
+        if self.extension == "zip" || self.extension == "7z" {
+            let name_without_ext = filename.trim_end_matches(&format!(".{}", self.extension));
+            
+            // MAME ROM names are typically:
+            // - Short (usually <= 12 characters)
+            // - May contain numbers, letters, underscores
+            // - Don't contain common console ROM patterns like "(USA)" or "[!]"
+            
+            // Classic MAME naming patterns (short, cryptic names)
+            if name_without_ext.len() <= 12 && 
+               !name_without_ext.contains('(') && // No region/version info
+               !name_without_ext.contains('[') && // No ROM dump info
+               !name_without_ext.contains("rev") && // No revision info
+               !name_without_ext.contains("v1.") && // No version numbers
+               !name_without_ext.contains("disc") && // Not disc-based
+               !name_without_ext.contains("track") { // Not track-based
+                return true;
+            }
+            
+            // Even if it doesn't match classic MAME patterns, 
+            // ZIP files are commonly used for MAME ROMs
+            // Only exclude if there are very strong indicators it's NOT MAME
+            
+            // If it's clearly a console ROM name pattern, might not be MAME
+            if name_without_ext.contains("(usa)") ||
+               name_without_ext.contains("(europe)") ||
+               name_without_ext.contains("(japan)") ||
+               name_without_ext.contains("(world)") ||
+               name_without_ext.contains("[!]") ||
+               name_without_ext.contains("[a]") ||
+               name_without_ext.contains("[h") ||
+               name_without_ext.contains("rev ") ||
+               name_without_ext.contains("version ") {
+                return false;
+            }
+            
+            // Default to MAME for most ZIP files
+            return true;
+        }
+        
+        false
     }
 
     fn detect_system_from_path(&self) -> Option<String> {
@@ -161,6 +218,62 @@ impl RomFile {
         } else {
             None
         }
+    }
+
+    fn detect_system_from_path_conservative(&self) -> Option<String> {
+        let path_str = self.path.to_string_lossy().to_lowercase();
+        
+        // Conservative detection - only detect if there are very clear, unambiguous indicators
+        // For archives, be extra careful to avoid false positives
+        
+        // For ZIP/7Z files, be extremely conservative about non-MAME detection
+        // Most ZIP/7Z files in emulation contexts are MAME ROMs
+        if self.extension == "zip" || self.extension == "7z" {
+            // For archives, almost always prefer MAME detection unless there are 
+            // very strong indicators it's NOT a MAME ROM
+            // We return None here to let the main detection logic handle it
+            // (which will typically classify ZIP files as MAME)
+            return None;
+        }
+        
+        // For non-archive files, use more specific path-based detection
+        // Only detect N64 if it's in a dedicated N64 directory structure
+        if (path_str.contains("/n64/") || path_str.contains("\\n64\\") || 
+            path_str.contains("/nintendo64/") || path_str.contains("\\nintendo64\\") ||
+            path_str.contains("/nintendo_64/") || path_str.contains("\\nintendo_64\\")) &&
+           !path_str.contains("mame") && !path_str.contains("arcade") {
+            return Some("Nintendo - Nintendo 64".to_string());
+        }
+        
+        // Only detect other systems with very explicit directory indicators
+        if (path_str.contains("/nes/") || path_str.contains("\\nes\\") ||
+            path_str.contains("/famicom/") || path_str.contains("\\famicom\\")) &&
+           !path_str.contains("mame") && !path_str.contains("arcade") {
+            return Some("Nintendo - Nintendo Entertainment System".to_string());
+        }
+        
+        if (path_str.contains("/snes/") || path_str.contains("\\snes\\") ||
+            path_str.contains("/super_nintendo/") || path_str.contains("\\super_nintendo\\")) &&
+           !path_str.contains("mame") && !path_str.contains("arcade") {
+            return Some("Nintendo - Super Nintendo Entertainment System".to_string());
+        }
+        
+        if (path_str.contains("/gba/") || path_str.contains("\\gba\\") ||
+            path_str.contains("/game_boy_advance/") || path_str.contains("\\game_boy_advance\\")) &&
+           !path_str.contains("mame") && !path_str.contains("arcade") {
+            return Some("Nintendo - Game Boy Advance".to_string());
+        }
+        
+        if (path_str.contains("/genesis/") || path_str.contains("\\genesis\\") ||
+            path_str.contains("/megadrive/") || path_str.contains("\\megadrive\\") ||
+            path_str.contains("/mega_drive/") || path_str.contains("\\mega_drive\\")) &&
+           !path_str.contains("mame") && !path_str.contains("arcade") {
+            return Some("Sega - Mega Drive - Genesis".to_string());
+        }
+        
+        // If we can't determine with high confidence, return None
+        // This prevents false positives where MAME ROMs get misclassified
+        None
     }
 }
 
