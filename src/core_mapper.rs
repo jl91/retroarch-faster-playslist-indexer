@@ -182,18 +182,14 @@ impl CoreMapper {
         self.system_cores.insert("Arcade".to_string(), "mame2003_plus".to_string());
     }
 
-    pub fn get_default_core(&self, system: &str, platform: Platform) -> Option<(String, String)> {
-        let core_name = self.system_cores.get(system)?;
-        let core_info = self.cores.get(core_name)?;
-        
-        let core_path = if let Some(path) = core_info.get_core_for_platform(platform) {
-            format!("{}/{}", platform.default_cores_path(), path)
+    pub fn get_default_core(&self, system: &str, _platform: Platform) -> Option<(String, String)> {
+        // Always return "DETECT" for both core path and core name
+        // This forces RetroArch to auto-detect the appropriate core
+        if self.system_cores.contains_key(system) {
+            Some(("DETECT".to_string(), "DETECT".to_string()))
         } else {
-            // Fallback to generic detection
-            "DETECT".to_string()
-        };
-
-        Some((core_path, core_info.display_name.clone()))
+            None
+        }
     }
 
     pub fn get_core_info(&self, core_name: &str) -> Option<&CoreInfo> {
@@ -228,8 +224,9 @@ mod tests {
             .get_default_core("Nintendo - Nintendo 64", Platform::Windows)
             .unwrap();
         
-        assert!(core_path.contains("mupen64plus_next_libretro.dll"));
-        assert_eq!(core_name, "Mupen64Plus-Next");
+        // After changes - should always return "DETECT" 
+        assert_eq!(core_path, "DETECT");
+        assert_eq!(core_name, "DETECT");
     }
 
     #[test]
@@ -244,8 +241,9 @@ mod tests {
             .get_default_core("Nintendo - Nintendo 64", Platform::Switch)
             .unwrap();
         
-        assert!(windows_core.contains(".dll"));
-        assert!(switch_core.contains("_libnx.nro"));
+        // After changes - should always return "DETECT" regardless of platform
+        assert_eq!(windows_core, "DETECT");
+        assert_eq!(switch_core, "DETECT");
     }
 
     #[test]
@@ -262,7 +260,7 @@ mod tests {
     fn test_mgba_multi_system_support() {
         let mapper = CoreMapper::new();
         
-        // mGBA should support multiple Game Boy systems
+        // After changes - both systems should return "DETECT"
         let (gba_core, gba_name) = mapper
             .get_default_core("Nintendo - Game Boy Advance", Platform::Windows)
             .unwrap();
@@ -271,8 +269,18 @@ mod tests {
             .get_default_core("Nintendo - Game Boy", Platform::Windows)
             .unwrap();
         
-        assert_eq!(gba_name, "mGBA");
-        assert_eq!(gb_name, "mGBA");
+        assert_eq!(gba_name, "DETECT");
+        assert_eq!(gb_name, "DETECT");
         assert_eq!(gba_core, gb_core);
+        assert_eq!(gba_core, "DETECT");
+    }
+
+    #[test]
+    fn test_unknown_system() {
+        let mapper = CoreMapper::new();
+        
+        // Unknown systems should return None
+        let result = mapper.get_default_core("Unknown System", Platform::Windows);
+        assert!(result.is_none());
     }
 }
