@@ -991,6 +991,40 @@ Contribuições são bem-vindas! Por favor:
 - Mantenha a documentação atualizada
 - Use tipos seguros sempre que possível
 
+### Versionamento e Releases
+
+**📦 Política de Build e Releases:**
+
+Sempre que uma feature for concluída com sucesso (build clean + testes passando):
+
+1. **Build Release**: Execute `cargo build --release`
+2. **Versionamento**: Atualize a versão em:
+   - `Cargo.toml` (campo `version`)
+   - `src/cli.rs` (atributo `version`)
+   - `src/main.rs` (banner)
+3. **Diretório bin/**: Copie o executável para `bin/[OS-build]/[OS-arch]/` com versionamento:
+   ```bash
+   # Windows
+   copy .\target\release\retroarch-indexer.exe .\bin\windows/x64/retroarch-indexer-v1.x.x.exe
+   
+   # Linux/macOS
+   cp ./target/release/retroarch-indexer ./bin/linux/x64/retroarch-indexer-v1.x.x
+   ```
+4. **Documentação**: Atualize `STATUS.md` e `README.md` conforme necessário
+5. **Histórico**: Mantenha um histórico das versões no diretório `bin/`
+
+**🎯 Estrutura do Diretório bin/:**
+```
+bin/
+├── windows/                         # Builds específicos para Windows
+├── linux/                          # Builds específicos para Linux  
+├── macos/                          # Builds específicos para macOS
+├── CHECKSUMS.md                    # Checksums dos binários
+└── README.md                       # Instruções de uso dos binários
+```
+
+Esta política garante que sempre tenhamos binários testados e versionados disponíveis para distribuição e rollback se necessário.
+
 ### Status de Desenvolvimento Atual
 
 O projeto está em **estado maduro** com todas as funcionalidades core implementadas e testadas:

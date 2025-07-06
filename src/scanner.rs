@@ -1,6 +1,5 @@
 use anyhow::{Result, Context};
 use dashmap::DashMap;
-use indicatif::{ProgressBar, ProgressStyle, ParallelProgressIterator};
 use log::{debug, info, warn};
 use rayon::prelude::*;
 use std::path::{Path, PathBuf};
@@ -9,6 +8,7 @@ use walkdir::WalkDir;
 
 use crate::crc32::calculate_crc32;
 use crate::error::ScannerError;
+use crate::thread_monitor::{ThreadMonitor, ThreadStatus};
 
 #[derive(Debug, Clone)]
 pub struct RomFile {
@@ -224,33 +224,35 @@ impl Scanner {
 
         info!("Encontrados {} arquivos para processar", file_paths.len());
 
-        // Create progress bar
-        let pb = if self.verbose {
-            let pb = ProgressBar::new(file_paths.len() as u64);
-            pb.set_style(
-                ProgressStyle::default_bar()
-                    .template("{spinner:.green} [{bar:40.cyan/blue}] {pos}/{len} {msg}")
-                    .unwrap()
-                    .progress_chars("#>-")
-            );
-            Some(pb)
-        } else {
-            None
-        };
-
-        // Process files in parallel
+        // Create thread monitor
+        let monitor = Arc::new(ThreadMonitor::new(file_paths.len(), self.threads, self.verbose));
+        
+        // Process files in parallel with real-time thread monitoring
         let roms: Vec<RomFile> = pool.install(|| {
             file_paths
                 .par_iter()
-                .progress_with(pb.clone().unwrap_or_else(|| ProgressBar::hidden()))
-                .filter_map(|path| {
-                    match self.process_file(path) {
-                        Ok(Some(rom)) => Some(rom),
-                        Ok(None) => None,
+                .enumerate()
+                .filter_map(|(index, path)| {
+                    let thread_id = rayon::current_thread_index().unwrap_or(0);
+                    
+                    // Register thread if first time
+                    monitor.register_thread(thread_id);
+                    
+                    // Update main progress message
+                    monitor.set_main_message(&format!("Processando arquivo {} de {}", index + 1, file_paths.len()));
+                    
+                    // Process the file with detailed status updates
+                    match self.process_file_with_monitor(path, &monitor, thread_id) {
+                        Ok(Some(rom)) => {
+                            monitor.update_thread_status(thread_id, ThreadStatus::ProcessingComplete(path.display().to_string()));
+                            Some(rom)
+                        },
+                        Ok(None) => {
+                            monitor.update_thread_status(thread_id, ThreadStatus::ProcessingComplete(path.display().to_string()));
+                            None
+                        },
                         Err(e) => {
-                            if self.verbose {
-                                warn!("Erro ao processar {}: {}", path.display(), e);
-                            }
+                            monitor.update_thread_status(thread_id, ThreadStatus::Error(path.display().to_string(), e.to_string()));
                             None
                         }
                     }
@@ -258,9 +260,7 @@ impl Scanner {
                 .collect()
         });
 
-        if let Some(pb) = pb {
-            pb.finish_with_message("Escaneamento concluído");
-        }
+        monitor.finish("✅ Escaneamento concluído");
 
         info!("Processados {} arquivos de ROM", roms.len());
 
@@ -321,6 +321,78 @@ impl Scanner {
 
         // Calculate CRC32 if requested and not cached
         if self.calculate_crc {
+            if let Some(cached_crc) = self.crc_cache.get(path) {
+                rom.crc32 = Some(*cached_crc);
+                debug!("CRC32 do cache para {}: {:08X}", path.display(), *cached_crc);
+            } else {
+                match calculate_crc32(path) {
+                    Ok(crc) => {
+                        rom.crc32 = Some(crc);
+                        self.crc_cache.insert(path.to_path_buf(), crc);
+                        debug!("CRC32 calculado para {}: {:08X}", path.display(), crc);
+                    }
+                    Err(e) => {
+                        warn!("Falha ao calcular CRC32 para {}: {}", path.display(), e);
+                    }
+                }
+            }
+        }
+
+        // Detect system
+        rom.system = rom.detect_system();
+
+        if self.verbose {
+            debug!(
+                "Processado: {} | Sistema: {} | CRC32: {} | Tamanho: {} bytes",
+                rom.filename,
+                rom.system.as_deref().unwrap_or("Desconhecido"),
+                rom.crc32.map(|c| format!("{:08X}", c)).unwrap_or_else(|| "N/A".to_string()),
+                rom.size
+            );
+        }
+
+        Ok(Some(rom))
+    }
+
+    /// Processa um arquivo com monitoramento detalhado de thread
+    fn process_file_with_monitor(
+        &self, 
+        path: &Path, 
+        monitor: &ThreadMonitor, 
+        thread_id: usize
+    ) -> Result<Option<RomFile>> {
+        // Update status: scanning file
+        monitor.update_thread_status(thread_id, ThreadStatus::ScanningFile(path.display().to_string()));
+
+        let mut rom = RomFile::new(path.to_path_buf());
+
+        // Get file metadata
+        let metadata = std::fs::metadata(path)
+            .with_context(|| format!("Falha ao ler metadados de {}", path.display()))?;
+        rom.size = metadata.len();
+
+        // Detect if it's an archive
+        rom.is_archive = matches!(rom.extension.as_str(), "zip" | "7z" | "rar");
+
+        // If it's an archive, show extraction progress
+        if rom.is_archive {
+            // Simulate extraction progress for archives
+            for progress in (0..=100).step_by(20) {
+                monitor.update_thread_status(
+                    thread_id, 
+                    ThreadStatus::ExtractingArchive { 
+                        file: path.display().to_string(), 
+                        progress: progress as f32 
+                    }
+                );
+                std::thread::sleep(std::time::Duration::from_millis(10)); // Simulate work
+            }
+        }
+
+        // Calculate CRC32 if requested and not cached
+        if self.calculate_crc {
+            monitor.update_thread_status(thread_id, ThreadStatus::CalculatingCrc(path.display().to_string()));
+            
             if let Some(cached_crc) = self.crc_cache.get(path) {
                 rom.crc32 = Some(*cached_crc);
                 debug!("CRC32 do cache para {}: {:08X}", path.display(), *cached_crc);

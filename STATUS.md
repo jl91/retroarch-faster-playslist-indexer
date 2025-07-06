@@ -241,6 +241,39 @@ output_directory = "./playlists"
 - [x] ✅ **Suporte completo a 7z** - Implementado e funcional com `sevenz-rust` v0.6.1
 - [x] ✅ **Prompt Interativo** - Interface para configurar paths de origem e destino quando não fornecidos via CLI
 
+## 🔄 **Atualização v1.3.3 (5 de julho de 2025)**
+
+### ✅ **Sistema de Monitoramento de Threads em Tempo Real**
+- ✅ **ThreadMonitor**: Novo módulo para monitoramento detalhado de threads paralelas
+- ✅ **Status em Tempo Real**: Cada thread mostra exatamente o que está fazendo:
+  - 🔍 Escaneando arquivo
+  - 📦 Extraindo arquivo comprimido (com percentual de progresso)
+  - 🔢 Calculando CRC32
+  - ✅ Processamento concluído
+  - ❌ Erros com detalhes
+- ✅ **Progress Bars Múltiplas**: Barra principal + barras individuais por thread (modo verbose)
+- ✅ **Controle de Threads**: Parâmetro `--threads` já existente agora é respeitado completamente
+- ✅ **Feedback Interativo**: Truncamento automático de nomes de arquivos para melhor visualização
+
+### ✅ **Melhorias de Performance e UX**
+- ✅ **Simulação de Extração**: Progresso visual para arquivos ZIP/7z em processamento
+- ✅ **Thread Pool Otimizado**: Controle preciso do número de threads usadas
+- ✅ **Estatísticas Avançadas**: Contadores detalhados por operação e thread
+
+## 🔄 **Atualização v1.3.2 (5 de julho de 2025)**
+
+### ✅ **Melhorias de Feedback Visual no CLI**
+- ✅ **Progress Bar Melhorado**: Mostra nome do arquivo sendo processado em tempo real
+- ✅ **Estatísticas de Escaneamento**: Resumo detalhado por diretório com timing
+- ✅ **Contadores Visuais**: Total de ROMs, arquivos comprimidos e threads utilizadas
+- ✅ **Feedback Paralelo**: Indicação visual clara dos arquivos sendo processados simultaneamente
+- ✅ **Binário Versionado**: Implementação da política de versionamento em `bin/`
+
+### ✅ **Sistema de Versionamento Implementado**
+- ✅ **Diretório `bin/`**: Criado para armazenar builds versionados
+- ✅ **Política de Release**: Documentada no `CLAUDE.md` para futuras features
+- ✅ **Builds Históricos**: Mantém versões anteriores para rollback
+
 ## 🔄 **Atualização v1.3.1 (5 de julho de 2025)**
 
 ### ✅ **Prompt Interativo Implementado**

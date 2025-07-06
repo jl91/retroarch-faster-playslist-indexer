@@ -18,6 +18,7 @@ mod config;
 mod error;
 mod cache;
 mod archive;
+mod thread_monitor;
 #[cfg(feature = "watch-mode")]
 mod watch;
 #[cfg(feature = "dat-download")]
@@ -82,7 +83,7 @@ fn main() -> Result<()> {
 }
 
 fn print_banner() {
-    println!("{}", "🎮 RetroArch Fast Playlist Indexer v1.3.1".bright_cyan().bold());
+    println!("{}", "🎮 RetroArch Fast Playlist Indexer v1.3.3".bright_cyan().bold());
     println!("{}", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━".cyan());
     println!();
 }
@@ -230,9 +231,38 @@ fn handle_index_command(args: Args) -> Result<()> {
 
     // Scan all ROM directories
     let mut all_roms = Vec::new();
-    for roms_dir in &args.roms_dirs {
-        println!("🔍 Escaneando diretório: {}", roms_dir.display().to_string().bright_blue());
+    let mut total_scanned_files = 0;
+    let mut archives_found = 0;
+    
+    for (index, roms_dir) in args.roms_dirs.iter().enumerate() {
+        println!("🔍 Escaneando diretório {} de {}: {}", 
+            (index + 1).to_string().bright_yellow(), 
+            args.roms_dirs.len().to_string().bright_yellow(),
+            roms_dir.display().to_string().bright_blue()
+        );
+        
+        let start_time = std::time::Instant::now();
         let roms = scanner.scan_directory(roms_dir)?;
+        let scan_duration = start_time.elapsed();
+        
+        // Count archives
+        let dir_archives = roms.iter().filter(|rom| rom.is_archive).count();
+        archives_found += dir_archives;
+        
+        total_scanned_files += roms.len();
+        
+        if args.verbose > 0 {
+            println!("   📊 {} ROMs encontradas em {:.2}s", 
+                roms.len().to_string().bright_green(),
+                scan_duration.as_secs_f32().to_string().bright_cyan()
+            );
+            if dir_archives > 0 {
+                println!("   📦 {} arquivos comprimidos detectados", 
+                    dir_archives.to_string().bright_magenta()
+                );
+            }
+        }
+        
         all_roms.extend(roms);
     }
 
@@ -240,6 +270,16 @@ fn handle_index_command(args: Args) -> Result<()> {
         println!("{}", "⚠️  Nenhuma ROM encontrada nos diretórios especificados".yellow());
         return Ok(());
     }
+
+    // Show scanning summary
+    println!("\n📈 {} do Escaneamento:", "Resumo".bright_cyan().bold());
+    println!("├─ Total de ROMs: {}", total_scanned_files.to_string().bright_green());
+    println!("├─ Diretórios escaneados: {}", args.roms_dirs.len().to_string().bright_blue());
+    if archives_found > 0 {
+        println!("├─ Arquivos comprimidos: {}", archives_found.to_string().bright_magenta());
+    }
+    println!("└─ Threads utilizadas: {}", args.threads.unwrap_or_else(num_cpus::get).to_string().bright_yellow());
+    println!();
 
     // Load DAT files if available
     let dat_collection = if let Some(dat_dir) = &args.dat_dir {

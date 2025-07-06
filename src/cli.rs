@@ -6,7 +6,7 @@ use crate::platform::Platform;
 #[command(
     name = "retroarch-indexer",
     about = "Um indexador universal de ROMs de alta performance para RetroArch",
-    version = "1.3.1",
+    version = "1.3.3",
     long_about = "
 🎮 RetroArch Fast Playlist Indexer
 

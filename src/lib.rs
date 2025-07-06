@@ -10,6 +10,7 @@ pub mod config;
 pub mod error;
 pub mod cache;
 pub mod archive;
+pub mod thread_monitor;
 
 #[cfg(feature = "watch-mode")]
 pub mod watch;

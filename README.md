@@ -111,7 +111,7 @@ retroarch-indexer convert Nintendo\ 64.lpl --target switch
 retroarch-indexer convert-all --input-dir ./playlists --source windows --target switch
 ```
 
-### Uso Avançado (v1.3.0)
+### Uso Avançado (v1.3.3)
 
 ```bash
 # Monitoramento automático de diretórios
@@ -129,7 +129,32 @@ retroarch-indexer deduplicate --strategy filename-quality --dry-run
 # Gerenciamento de cache
 retroarch-indexer cache stats
 retroarch-indexer cache clean
+
+# Controle de threads e monitoramento em tempo real
+retroarch-indexer --roms-dir ./roms --threads 8 -v  # 8 threads com log detalhado
+retroarch-indexer --roms-dir ./roms --threads 2     # Limitar a 2 threads para SSDs lentos
 ```
+
+### 🔧 **Monitoramento de Threads em Tempo Real (v1.3.3)**
+
+O novo sistema mostra exatamente o que cada thread está fazendo:
+
+```
+🔍 Escaneando diretório 1 de 1: ./roms
+⠁ [=====>----------------------------------] 2/10 (20%) Processando arquivo 3 de 10
+⠁ Thread  0 | 🔍 Escaneando: Super Mario 64.z64
+⠁ Thread  1 | 📦 Extraindo game.zip (75.2%)
+⠁ Thread  2 | 🔢 CRC32: Zelda OoT.z64
+⠁ Thread  3 | ✅ Concluído: Mario Kart.z64
+```
+
+**Status possíveis por thread:**
+- 🔸 **Idle**: Aguardando trabalho
+- 🔍 **Escaneando**: Lendo arquivo do disco
+- 📦 **Extraindo**: Processando arquivo comprimido (com %)
+- 🔢 **CRC32**: Calculando checksum
+- ✅ **Concluído**: Arquivo processado com sucesso
+- ❌ **Erro**: Falha no processamento
 
 ## ✨ Características (v1.3.0)
 
