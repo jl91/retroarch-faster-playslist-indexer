@@ -1,9 +1,9 @@
 use anyhow::{Result, Context};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use log::{info, debug, warn, error};
 
@@ -74,7 +74,7 @@ impl DatDownloader {
     }
 
     /// Create a new DAT downloader with default config
-    pub fn new() -> Result<Self> {
+    pub fn new_default() -> Result<Self> {
         Self::new(DatDownloadConfig::default())
     }
 
@@ -256,7 +256,7 @@ impl DatDownloader {
         let mut results = Vec::new();
         
         // Process downloads with concurrency limit
-        let semaphore = tokio::sync::Semaphore::new(self.config.concurrent_downloads);
+        let semaphore = Arc::new(tokio::sync::Semaphore::new(self.config.concurrent_downloads));
         let mut tasks = Vec::new();
 
         for source in &self.sources {
@@ -394,7 +394,10 @@ impl DatDownloader {
         let file_size = content.len() as u64;
         
         // Calculate checksum
+        #[cfg(feature = "dat-download")]
         let checksum = format!("{:x}", md5::compute(&content));
+        #[cfg(not(feature = "dat-download"))]
+        let checksum = "unknown".to_string();
 
         fs::write(file_path, &content)
             .with_context(|| format!("Failed to write file: {}", file_path.display()))?;
@@ -472,17 +475,13 @@ impl DatDownloader {
     }
 
     /// Calculate file checksum
+    #[cfg(feature = "dat-download")]
     fn calculate_checksum(&self, path: &Path) -> Result<String> {
-        use md5::{Md5, Digest};
-        
         let content = fs::read(path)
             .with_context(|| format!("Failed to read file for checksum: {}", path.display()))?;
         
-        let mut hasher = Md5::new();
-        hasher.update(&content);
-        let hash = hasher.finalize();
-        
-        Ok(format!("{:x}", hash))
+        let checksum = format!("{:x}", md5::compute(&content));
+        Ok(checksum)
     }
 
     /// Save metadata for downloaded DAT
@@ -590,7 +589,7 @@ impl DatManager {
 
     /// Get available systems
     pub fn available_systems(&self) -> Vec<String> {
-        self.downloader.available_systems()
+        self.downloader.get_available_systems().unwrap_or_else(|_| vec![])
     }
 }
 

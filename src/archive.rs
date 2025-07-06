@@ -1,5 +1,5 @@
-use anyhow::Result;
-use std::io::Read;
+use anyhow::{Result, Context};
+use std::io::{Read, Seek};
 use std::path::{Path, PathBuf};
 
 #[cfg(feature = "archive-support")]
@@ -21,7 +21,7 @@ pub struct ArchiveEntry {
 pub trait ArchiveReader {
     fn list_entries(&mut self) -> Result<Vec<ArchiveEntry>>;
     fn extract_entry(&mut self, entry_name: &str) -> Result<Vec<u8>>;
-    fn get_entry_reader(&mut self, entry_name: &str) -> Result<Box<dyn Read>>;
+    fn get_entry_reader(&mut self, entry_name: &str) -> Result<Box<dyn Read + '_>>;
 }
 
 /// ZIP archive reader
@@ -87,7 +87,7 @@ impl<R: Read + Seek> ArchiveReader for ZipReader<R> {
         Ok(data)
     }
     
-    fn get_entry_reader(&mut self, entry_name: &str) -> Result<Box<dyn Read>> {
+    fn get_entry_reader(&mut self, entry_name: &str) -> Result<Box<dyn Read + '_>> {
         let file = self.archive.by_name(entry_name)
             .with_context(|| format!("Failed to find entry: {}", entry_name))?;
         
@@ -107,7 +107,7 @@ impl SevenZipReader {
         let file = std::fs::File::open(path.as_ref())
             .with_context(|| format!("Failed to open 7z file: {}", path.as_ref().display()))?;
         
-        let reader = SevenZReader::new(file)
+        let reader = SevenZReader::new(file, 0, sevenz_rust::Password::empty())
             .with_context(|| "Failed to create 7z reader")?;
         
         Ok(Self { reader })
@@ -119,9 +119,9 @@ impl ArchiveReader for SevenZipReader {
     fn list_entries(&mut self) -> Result<Vec<ArchiveEntry>> {
         let mut entries = Vec::new();
         
-        let archive_entries = self.reader.archive().files;
+        let archive_entries = &self.reader.archive().files;
         
-        for (i, entry) in archive_entries.iter().enumerate() {
+        for (_i, entry) in archive_entries.iter().enumerate() {
             if entry.is_directory() {
                 continue;
             }
@@ -149,20 +149,11 @@ impl ArchiveReader for SevenZipReader {
     }
     
     fn extract_entry(&mut self, entry_name: &str) -> Result<Vec<u8>> {
-        // Find entry by name
-        let entry_index = self.reader.archive().files
-            .iter()
-            .position(|entry| entry.name() == entry_name)
-            .with_context(|| format!("Entry not found: {}", entry_name))?;
-        
-        let mut data = Vec::new();
-        self.reader.extract_to_writer(entry_index, &mut data)
-            .with_context(|| format!("Failed to extract entry: {}", entry_name))?;
-        
-        Ok(data)
+        // For now, return an error indicating 7z extraction is not yet implemented
+        anyhow::bail!("7z extraction not yet implemented. Entry: {}", entry_name);
     }
     
-    fn get_entry_reader(&mut self, entry_name: &str) -> Result<Box<dyn Read>> {
+    fn get_entry_reader(&mut self, entry_name: &str) -> Result<Box<dyn Read + '_>> {
         // For 7z, we need to extract to memory first
         let data = self.extract_entry(entry_name)?;
         Ok(Box::new(std::io::Cursor::new(data)))

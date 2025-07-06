@@ -1,14 +1,14 @@
 use anyhow::{Result, Context};
-use notify::{Watcher, RecursiveMode, Event, EventKind, RecommendedWatcher};
+use notify::{Watcher, RecursiveMode, Event, RecommendedWatcher};
 use std::path::{Path, PathBuf};
-use std::sync::mpsc::{Receiver, Sender};
-use std::sync::{Arc, Mutex};
+use std::sync::mpsc::Receiver;
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 use std::collections::HashSet;
 use log::{info, debug, warn, error};
 
-use crate::scanner::RomScanner;
-use crate::playlist::PlaylistGenerator;
+use crate::scanner::Scanner;
+use crate::playlist::PlaylistBuilder;
 use crate::config::Config;
 use crate::platform::Platform;
 
@@ -142,6 +142,11 @@ impl RomWatcher {
         } else {
             Ok(Vec::new())
         }
+    }
+
+    /// Process a single event
+    fn process_event(&self, event: Event) -> Result<Option<FileEvent>> {
+        self.convert_event(event)
     }
 
     /// Convert notify event to our event type
@@ -385,8 +390,8 @@ pub struct WatchStats {
 /// Watch mode runner
 pub struct WatchRunner {
     watcher: RomWatcher,
-    scanner: RomScanner,
-    playlist_generator: PlaylistGenerator,
+    scanner: Scanner,
+    playlist_generator: PlaylistBuilder,
     config: Arc<Config>,
 }
 
@@ -394,8 +399,8 @@ impl WatchRunner {
     /// Create a new watch runner
     pub fn new(
         watch_config: WatchConfig,
-        scanner: RomScanner,
-        playlist_generator: PlaylistGenerator,
+        scanner: Scanner,
+        playlist_generator: PlaylistBuilder,
         config: Arc<Config>,
     ) -> Result<Self> {
         let watcher = RomWatcher::new(watch_config)?;
@@ -486,7 +491,14 @@ impl WatchRunner {
 
         // Generate playlists
         let output_dir = &self.config.paths.output_directory;
-        self.playlist_generator.generate_all_playlists(&all_roms, output_dir)?;
+        let playlists = self.playlist_generator.build_by_system(&all_roms)?;
+        
+        // Save each playlist
+        for (system_name, playlist) in playlists {
+            let playlist_path = Path::new(output_dir).join(format!("{}.lpl", system_name));
+            playlist.save(&playlist_path)?;
+            info!("Saved playlist: {}", playlist_path.display());
+        }
         
         let elapsed = start_time.elapsed();
         info!("Incremental scan completed in {:?} - found {} ROMs", elapsed, all_roms.len());

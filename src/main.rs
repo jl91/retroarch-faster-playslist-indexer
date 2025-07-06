@@ -381,7 +381,7 @@ fn handle_download_dats_command(
 
     std::fs::create_dir_all(&output_dir)?;
 
-    let downloader = DatDownloader::new()
+    let downloader = DatDownloader::new_default()?
         .with_timeout(std::time::Duration::from_secs(timeout))
         .with_output_directory(output_dir.clone());
 
