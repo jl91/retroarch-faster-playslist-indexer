@@ -58,16 +58,24 @@ impl I18n {
     }
     
     fn load_embedded_locales(&mut self) -> Result<()> {
-        // Fallback implementation with embedded strings
+        // Fallback implementation with embedded strings for all supported languages
         let en_content = include_str!("../locales/en.ftl");
         let pt_content = include_str!("../locales/pt.ftl");
         let es_content = include_str!("../locales/es.ftl");
         let fr_content = include_str!("../locales/fr.ftl");
+        let de_content = include_str!("../locales/de.ftl");
+        let ja_content = include_str!("../locales/ja.ftl");
+        let ru_content = include_str!("../locales/ru.ftl");
+        let zh_content = include_str!("../locales/zh.ftl");
         
         self.translations.insert("en".to_string(), self.parse_ftl_content(en_content)?);
         self.translations.insert("pt".to_string(), self.parse_ftl_content(pt_content)?);
         self.translations.insert("es".to_string(), self.parse_ftl_content(es_content)?);
         self.translations.insert("fr".to_string(), self.parse_ftl_content(fr_content)?);
+        self.translations.insert("de".to_string(), self.parse_ftl_content(de_content)?);
+        self.translations.insert("ja".to_string(), self.parse_ftl_content(ja_content)?);
+        self.translations.insert("ru".to_string(), self.parse_ftl_content(ru_content)?);
+        self.translations.insert("zh".to_string(), self.parse_ftl_content(zh_content)?);
         
         Ok(())
     }
