@@ -1,19 +1,28 @@
-# RetroArch Fast Playlist Indexer v1.2.0
+# RetroArch Fast Playlist Indexer
 
 [![Rust](https://img.shields.io/badge/rust-%23000000.svg?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.2.0-brightgreen.svg)](https://github.com/seu-usuario/retroarch-fast-indexer)
+[![Rust Edition](https://img.shields.io/badge/rust_edition-2024-blue.svg)](https://doc.rust-lang.org/edition-guide/rust-2024/index.html)
 
 Um indexador universal de ROMs de alta performance escrito em Rust, projetado para gerar playlists RetroArch (`.lpl`) com velocidade superior ao scanner nativo, utilizando paralelismo e detecção precisa por CRC32. Suporta conversão automática de caminhos entre plataformas e inclui funcionalidades avançadas como cache persistente, validação via DAT e deduplicação inteligente.
 
+> **📋 Status do Projeto**: Para informações sobre o progresso atual do desenvolvimento, versões e roadmap, consulte o arquivo [`STATUS.md`](STATUS.md).
+
 ## 📋 Índice
 
-- [Novidades v1.2.0](#-novidades-v120)
 - [Motivação](#-motivação)
 - [Características](#-características)
 - [Sistemas Suportados](#-sistemas-suportados)
-- [Arquitetura](#️-arquitetura)
-- [Instalação](#-instalação)
+- [Arquitetura](#️-arquite- Mantenha a documentação atualizada
+- Use tipos seguros sempre que possível
+
+### Diretrizes de Contribuição
+- **Documentação**: Toda nova feature deve incluir documentação
+- **Testes**: Inclua testes para validar funcionalidades
+- **Performance**: Considere o impacto na performance
+- **Compatibilidade**: Mantenha compatibilidade com versões anteriores
+
+## ⚠️ Uso Legalação](#-instalação)
 - [Uso](#-uso)
 - [Configuração](#️-configuração)
 - [Formato de Dados](#-formato-de-dados)
@@ -22,38 +31,7 @@ Um indexador universal de ROMs de alta performance escrito em Rust, projetado pa
 - [Contribuindo](#-contribuindo)
 - [Uso Legal](#️-uso-legal)
 
-## 🆕 Novidades v1.2.0
-
-### ✅ **Roadmap v1.1/v1.2 Implementado**
-- **🗄️ Cache Persistente de CRC32**: Sistema de cache implementado para otimizar re-indexações
-- **📦 Suporte a Arquivos ZIP/7z**: Estrutura preparada (dependências temporariamente desabilitadas)
-- **👀 Modo Watch**: Módulo implementado com feature flag (requer dependências externas)
-- **🌐 Download Automático de DATs**: Módulo preparado com feature flag
-- **✅ Validação via DAT**: Sistema completo de validação de ROMs implementado
-- **🗂️ Deduplicação Inteligente**: 5 estratégias de deduplicação implementadas
-
-### 🔧 **Status de Implementação**
-- **Core Features**: ✅ 100% funcional (indexação, conversão, cache, validação, deduplicação)
-- **Archive Support**: ✅ Implementado com ZIP e 7z (features: archive-support)
-- **DAT Download**: ✅ Implementado com download automático (features: dat-download)
-- **Watch Mode**: 🔄 Implementado mas requer resolução de dependências
-- **Compilação**: ✅ Debug builds funcionais, release builds com issues de acesso
-
-### 📦 **Binários Pré-compilados**
-- **Windows x64**: ✅ Disponível em `bin/windows/x64/retroarch-indexer.exe`
-- **Windows x86**: 📁 Estrutura preparada em `bin/windows/x86/`
-- **Linux x64**: 📁 Estrutura preparada em `bin/linux/x64/`
-- **macOS Intel/ARM**: 📁 Estrutura preparada em `bin/macos/`
-- **Scripts de Build**: ✅ `build-all.ps1` e `build-all.sh` prontos
-- **Verificação**: ✅ `check-binaries.ps1/.sh` e `CHECKSUMS.md`
-
-### ⚖️ **Compliance Legal**
-- **Documentação Legal**: ✅ `LEGAL_COMPLIANCE.md` completo
-- **Diretrizes de Uso**: ✅ Especificações claras sobre uso legal
-- **Disclaimers**: ✅ Avisos sobre uso apenas com conteúdo próprio
-- **Versionamento**: ✅ `.gitignore` atualizado para compliance
-
-## 🎯 Motivação
+##  Motivação
 
 ### Problemas do Scanner Nativo do RetroArch
 
@@ -86,7 +64,7 @@ Um indexador universal de ROMs de alta performance escrito em Rust, projetado pa
 
 ## ✨ Características
 
-### Core Features (v1.0)
+### Core Features
 
 - **🚀 Performance Extrema**: Paralelização nativa com `rayon` para máxima utilização de CPU
 - **🔍 Detecção Precisa**: Cálculo de CRC32 otimizado com `crc32fast`
@@ -99,18 +77,26 @@ Um indexador universal de ROMs de alta performance escrito em Rust, projetado pa
 - **📊 Relatórios**: Geração de relatórios sobre ROMs não identificadas ou problemas de conversão
 - **🔄 Modo Batch**: Processamento de múltiplos sistemas e conversão em lote
 
-### Advanced Features (v1.1/v1.2) ✅
+### Arquitetura de Features
 
-- **🗄️ Cache Persistente de CRC32**: ✅ Sistema completo implementado e testado
-- **📦 Suporte a Arquivos Comprimidos**: ✅ ZIP e 7z implementados (features: archive-support)
-- **👀 Modo Watch**: ✅ Implementado (features: watch-mode, requer notify)
-- **🌐 Download Automático de DATs**: ✅ Sistema completo implementado (features: dat-download)
-- **✅ Validação via DAT**: ✅ Sistema completo com 6 tipos de validação testado
-- **🗂️ Deduplicação Inteligente**: ✅ 5 estratégias implementadas e testadas
-- **🔐 Backup Automático**: ✅ Sistema de backup antes de operações destrutivas
-- **📈 Estatísticas Avançadas**: ✅ Relatórios detalhados implementados
+O projeto utiliza Cargo features para permitir builds modulares e otimizados:
 
-**Status Final**: Todas as features do roadmap v1.1/v1.2/v1.3 foram implementadas com sucesso. Debug builds 100% funcionais, release builds requerem resolução de permissões de sistema.
+```toml
+# Features disponíveis
+[features]
+default = []
+archive-support = ["zip", "sevenz-rust"]     # Suporte a ZIP/7z
+dat-download = ["reqwest", "md5", "sha2"]    # Download automático de DATs
+watch-mode = ["notify"]                      # Monitoramento de diretórios
+checksums = ["md5", "sha2"]                  # Algoritmos adicionais de checksum
+full = ["archive-support", "dat-download", "watch-mode", "checksums"]
+```
+
+**Benefícios da Arquitetura Modular:**
+- **Builds Menores**: Inclua apenas as features necessárias
+- **Dependências Opcionais**: Evite dependências pesadas quando não necessárias
+- **Compilação Rápida**: Builds incrementais otimizados
+- **Flexibilidade**: Ative/desative funcionalidades conforme necessário
 
 ### Recursos Técnicos
 
@@ -224,26 +210,26 @@ retroarch-fast-indexer/
 A forma mais rápida de usar o indexador é baixar o binário pré-compilado:
 
 ```bash
-# Windows x64 (DISPONÍVEL)
+# Windows x64
 .\bin\windows\x64\retroarch-indexer.exe --help
 
 # Verificar binários disponíveis
 .\check-binaries.ps1  # Windows
 ./check-binaries.sh   # Linux/macOS
 
-# Estrutura preparada para múltiplas plataformas:
-# - bin/windows/x64/ ✅ (retroarch-indexer.exe disponível)
-# - bin/windows/x86/ 📁 (estrutura preparada)
-# - bin/linux/x64/   📁 (estrutura preparada)
-# - bin/macos/intel/  📁 (estrutura preparada)
-# - bin/macos/arm/    📁 (estrutura preparada)
+# Estrutura multiplataforma:
+# - bin/windows/x64/    # Windows 64-bit
+# - bin/windows/x86/    # Windows 32-bit
+# - bin/linux/x64/      # Linux 64-bit
+# - bin/macos/intel/    # macOS Intel
+# - bin/macos/arm/      # macOS Apple Silicon
 ```
 
 ### 🔧 Compilação Manual
 
 #### Pré-requisitos
 
-- Rust 1.82.0+ (edição 2024)
+- Rust 1.82.0+ (Edition 2024)
 - Cargo
 
 #### Compilação Simples
@@ -962,44 +948,31 @@ Funcionalidades extras do Fast Indexer:
 
 ## 🛠️ Roadmap
 
-### v1.0 (MVP) ✅
-- [x] Scanner paralelo básico
-- [x] Cálculo de CRC32
-- [x] Geração de LPL
-- [x] Suporte a DAT files
-- [x] CLI funcional
-- [x] Conversão entre plataformas
-- [x] Playlist master unificada
-- [x] Auto-detecção de sistemas
-- [x] Conversão de playlists existentes
-- [x] Conversão em lote
-- [x] Modo "converter para todas as plataformas"
+## 🛠️ Boas Práticas de Desenvolvimento
 
-### v1.1/1.2 (Advanced Features) ✅
-- [x] Cache persistente de CRC32 ✅
-- [x] Validação de ROMs via DAT ✅
-- [x] Deduplicação inteligente (5 estratégias) ✅
-- [x] Sistema de backup automático ✅
-- [x] Relatórios detalhados ✅
-- [x] CLI expandido com subcomandos ✅
-- [x] Suporte a arquivos ZIP/7z ✅ (features: archive-support)
-- [x] Download automático de DATs ✅ (features: dat-download)
-- [x] Modo watch ✅ (features: watch-mode)
+### Estrutura do Código
+- **Modularização**: Cada funcionalidade em seu próprio módulo
+- **Separação de Responsabilidades**: CLI, lógica de negócio e I/O separados
+- **Thread Safety**: Uso de `DashMap` e `Arc` para concorrência segura
+- **Error Handling**: Uso consistente de `Result<T, E>` e `anyhow`
 
-### v1.3 (Build Optimization)
-- [ ] Resolução de conflitos em release builds
-- [ ] Finalização da extração 7z (atualmente placeholder)
-- [ ] Testes automatizados expandidos
-- [ ] Binários para múltiplas plataformas (Linux, macOS, ARM)
-- [ ] Benchmarks atualizados com novas features
+### Features e Compilação
+- **Features Opcionais**: Use feature flags para funcionalidades grandes
+- **Cargo Workspace**: Estrutura organizada e builds incrementais
+- **Cross-compilation**: Suporte a múltiplas plataformas
+- **Release Optimization**: LTO e otimizações para performance máxima
 
-### Status Final (v1.2.0)
-- **Core Functionality**: ✅ 100% implementado e testado
-- **Advanced Features**: ✅ 100% implementado (todas as features do roadmap)
-- **Platform Support**: ✅ Estrutura completa para múltiplas plataformas
-- **Compliance**: ✅ 100% documentado e implementado
-- **Debug Builds**: ✅ 100% funcionais
-- **Release Builds**: 🔄 Requer resolução de permissões de sistema
+### Testes e Qualidade
+- **Unit Tests**: Testes para cada módulo individual
+- **Integration Tests**: Testes end-to-end para fluxos completos
+- **Benchmarks**: Medição de performance crítica
+- **Clippy + Rustfmt**: Linting e formatação consistentes
+
+### Performance
+- **Paralelismo**: Uso de `rayon` para processamento paralelo
+- **Cache**: Cache persistente para evitar recálculos
+- **Memory Mapping**: Para arquivos grandes
+- **Lazy Loading**: Carregamento sob demanda de recursos
 
 ## 🤝 Contribuindo
 
