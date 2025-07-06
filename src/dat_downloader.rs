@@ -627,6 +627,6 @@ mod tests {
         };
 
         downloader.add_source(custom_source);
-        assert!(downloader.available_systems().contains(&"test".to_string()));
+        assert!(downloader.get_available_systems().unwrap().contains(&"test".to_string()));
     }
 }

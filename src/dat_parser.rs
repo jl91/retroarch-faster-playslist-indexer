@@ -205,6 +205,7 @@ pub fn create_simple_dat(entries: &[(u32, &str)]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::path::PathBuf;
     use tempfile::NamedTempFile;
     use std::io::Write;
 
