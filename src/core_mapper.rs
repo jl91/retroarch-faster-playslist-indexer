@@ -60,7 +60,7 @@ impl CoreMapper {
         .with_platform_core(Platform::Linux, "mupen64plus_next_libretro.so".to_string())
         .with_platform_core(Platform::MacOS, "mupen64plus_next_libretro.dylib".to_string())
         .with_platform_core(Platform::Android, "mupen64plus_next_libretro_android.so".to_string())
-        .with_platform_core(Platform::Switch, "mupen64plus_next_libretro_libnx.a".to_string());
+        .with_platform_core(Platform::Switch, "mupen64plus_next_libretro_libnx.nro".to_string());
 
         self.cores.insert("mupen64plus_next".to_string(), mupen64plus);
         self.system_cores.insert("Nintendo - Nintendo 64".to_string(), "mupen64plus_next".to_string());
@@ -75,7 +75,7 @@ impl CoreMapper {
         .with_platform_core(Platform::Linux, "snes9x_libretro.so".to_string())
         .with_platform_core(Platform::MacOS, "snes9x_libretro.dylib".to_string())
         .with_platform_core(Platform::Android, "snes9x_libretro_android.so".to_string())
-        .with_platform_core(Platform::Switch, "snes9x_libretro_libnx.a".to_string());
+        .with_platform_core(Platform::Switch, "snes9x_libretro_libnx.nro".to_string());
 
         self.cores.insert("snes9x".to_string(), snes9x);
         self.system_cores.insert("Nintendo - Super Nintendo Entertainment System".to_string(), "snes9x".to_string());
@@ -94,7 +94,7 @@ impl CoreMapper {
         .with_platform_core(Platform::Linux, "mgba_libretro.so".to_string())
         .with_platform_core(Platform::MacOS, "mgba_libretro.dylib".to_string())
         .with_platform_core(Platform::Android, "mgba_libretro_android.so".to_string())
-        .with_platform_core(Platform::Switch, "mgba_libretro_libnx.a".to_string());
+        .with_platform_core(Platform::Switch, "mgba_libretro_libnx.nro".to_string());
 
         self.cores.insert("mgba".to_string(), mgba);
         self.system_cores.insert("Nintendo - Game Boy Advance".to_string(), "mgba".to_string());
@@ -115,7 +115,7 @@ impl CoreMapper {
         .with_platform_core(Platform::Linux, "genesis_plus_gx_libretro.so".to_string())
         .with_platform_core(Platform::MacOS, "genesis_plus_gx_libretro.dylib".to_string())
         .with_platform_core(Platform::Android, "genesis_plus_gx_libretro_android.so".to_string())
-        .with_platform_core(Platform::Switch, "genesis_plus_gx_libretro_libnx.a".to_string());
+        .with_platform_core(Platform::Switch, "genesis_plus_gx_libretro_libnx.nro".to_string());
 
         self.cores.insert("genesis_plus_gx".to_string(), genesis_plus_gx);
         self.system_cores.insert("Sega - Mega Drive - Genesis".to_string(), "genesis_plus_gx".to_string());
@@ -132,7 +132,7 @@ impl CoreMapper {
         .with_platform_core(Platform::Linux, "pcsx_rearmed_libretro.so".to_string())
         .with_platform_core(Platform::MacOS, "pcsx_rearmed_libretro.dylib".to_string())
         .with_platform_core(Platform::Android, "pcsx_rearmed_libretro_android.so".to_string())
-        .with_platform_core(Platform::Switch, "pcsx_rearmed_libretro_libnx.a".to_string());
+        .with_platform_core(Platform::Switch, "pcsx_rearmed_libretro_libnx.nro".to_string());
 
         self.cores.insert("pcsx_rearmed".to_string(), pcsx_rearmed);
         self.system_cores.insert("Sony - PlayStation".to_string(), "pcsx_rearmed".to_string());
@@ -147,7 +147,7 @@ impl CoreMapper {
         .with_platform_core(Platform::Linux, "fceumm_libretro.so".to_string())
         .with_platform_core(Platform::MacOS, "fceumm_libretro.dylib".to_string())
         .with_platform_core(Platform::Android, "fceumm_libretro_android.so".to_string())
-        .with_platform_core(Platform::Switch, "fceumm_libretro_libnx.a".to_string());
+        .with_platform_core(Platform::Switch, "fceumm_libretro_libnx.nro".to_string());
 
         self.cores.insert("fceumm".to_string(), fceumm);
         self.system_cores.insert("Nintendo - Nintendo Entertainment System".to_string(), "fceumm".to_string());
@@ -161,10 +161,25 @@ impl CoreMapper {
         .with_platform_core(Platform::Windows, "mame_libretro.dll".to_string())
         .with_platform_core(Platform::Linux, "mame_libretro.so".to_string())
         .with_platform_core(Platform::MacOS, "mame_libretro.dylib".to_string())
-        .with_platform_core(Platform::Android, "mame_libretro_android.so".to_string());
+        .with_platform_core(Platform::Android, "mame_libretro_android.so".to_string())
+        .with_platform_core(Platform::Switch, "mame_libretro_libnx.nro".to_string());
+
+        // MAME 2003 Plus
+        let mame2003_plus = CoreInfo::new(
+            "MAME 2003 Plus".to_string(),
+            "mame2003_plus".to_string(),
+        )
+        .with_systems(vec!["MAME".to_string(), "Arcade".to_string()])
+        .with_platform_core(Platform::Windows, "mame2003_plus_libretro.dll".to_string())
+        .with_platform_core(Platform::Linux, "mame2003_plus_libretro.so".to_string())
+        .with_platform_core(Platform::MacOS, "mame2003_plus_libretro.dylib".to_string())
+        .with_platform_core(Platform::Android, "mame2003_plus_libretro_android.so".to_string())
+        .with_platform_core(Platform::Switch, "mame2003_plus_libretro_libnx.nro".to_string());
 
         self.cores.insert("mame".to_string(), mame_current);
-        self.system_cores.insert("MAME".to_string(), "mame".to_string());
+        self.cores.insert("mame2003_plus".to_string(), mame2003_plus);
+        self.system_cores.insert("MAME".to_string(), "mame2003_plus".to_string());  // Use MAME 2003 Plus as default
+        self.system_cores.insert("Arcade".to_string(), "mame2003_plus".to_string());
     }
 
     pub fn get_default_core(&self, system: &str, platform: Platform) -> Option<(String, String)> {
@@ -230,7 +245,7 @@ mod tests {
             .unwrap();
         
         assert!(windows_core.contains(".dll"));
-        assert!(switch_core.contains("_libnx.a"));
+        assert!(switch_core.contains("_libnx.nro"));
     }
 
     #[test]

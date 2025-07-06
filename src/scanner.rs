@@ -78,7 +78,10 @@ impl RomFile {
             "ws" | "wsc" => Some("Bandai - WonderSwan".to_string()),
             "neo" => Some("SNK - Neo Geo".to_string()),
 
-            // Archives that could contain anything
+            // MAME/Arcade - Common extensions for MAME ROMs
+            "zip" | "7z" if self.is_mame() => Some("MAME".to_string()),
+
+            // Archives that could contain anything (after MAME check)
             "zip" | "7z" | "rar" => self.detect_system_from_path(),
 
             _ => None,
@@ -119,6 +122,24 @@ impl RomFile {
     fn is_atari2600(&self) -> bool {
         let path_str = self.path.to_string_lossy().to_lowercase();
         path_str.contains("2600") || path_str.contains("atari")
+    }
+
+    fn is_mame(&self) -> bool {
+        let path_str = self.path.to_string_lossy().to_lowercase();
+        // Check for common MAME directory names and patterns
+        path_str.contains("mame") || 
+        path_str.contains("arcade") ||
+        path_str.contains("roms/mame") ||
+        path_str.contains("roms\\mame") ||
+        path_str.contains("/mame/") ||
+        path_str.contains("\\mame\\") ||
+        // Common MAME subdirectories
+        path_str.contains("/roms/") && (
+            path_str.contains("cps") ||     // Capcom Play System
+            path_str.contains("neogeo") ||  // Neo Geo
+            path_str.contains("fbneo") ||   // FinalBurn Neo
+            path_str.contains("fba")        // FinalBurn Alpha
+        )
     }
 
     fn detect_system_from_path(&self) -> Option<String> {
