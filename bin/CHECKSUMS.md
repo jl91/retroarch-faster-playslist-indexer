@@ -1,15 +1,25 @@
-# SHA256 Checksums - RetroArch Fast Playlist Indexer v1.2.0
+# SHA256 Checksums - RetroArch Fast Playlist Indexer v1.3.3
 
 ## Verificação de Integridade
 
 Use os checksums abaixo para verificar a integridade dos binários baixados:
 
 ### Windows x64
+
+#### Versão 1.3.3 (Atual)
 ```
-Arquivo: bin/windows/x64/retroarch-indexer.exe
-SHA256: C807605169FDD57EE5FF097A1189F36AABD97FB4C680C4DDA4292A5104488C35
-Tamanho: ~8MB
-Data: 2025-07-05
+Arquivo: bin/windows/x64/retroarch-indexer-v1.3.3.exe
+SHA256: 641D0AAD9D943F5A30F6AE2D993E7D042F3B650FE07AD04B51EED6955B7EFADE
+Tamanho: 3.0 MB
+Data: 2025-07-06
+```
+
+#### Latest (Sempre a versão mais recente)
+```
+Arquivo: bin/windows/x64/retroarch-indexer-latest.exe
+SHA256: 641D0AAD9D943F5A30F6AE2D993E7D042F3B650FE07AD04B51EED6955B7EFADE
+Tamanho: 3.0 MB
+Data: 2025-07-06
 ```
 
 ### Como Verificar
