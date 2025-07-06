@@ -136,6 +136,13 @@ impl DatDownloader {
                 description: "Official No-Intro Genesis database".to_string(),
                 priority: 1,
             },
+            DatSource {
+                name: "No-Intro Sega 32X".to_string(),
+                url: "https://datomatic.no-intro.org/stuff/Sega%20-%2032X%20(20231225-000000).dat".to_string(),
+                system: "sega32x".to_string(),
+                description: "Official No-Intro Sega 32X database".to_string(),
+                priority: 1,
+            },
             
             // Redump sources (for disc-based systems)
             DatSource {

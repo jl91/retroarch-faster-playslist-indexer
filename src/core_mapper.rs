@@ -108,6 +108,7 @@ impl CoreMapper {
         )
         .with_systems(vec![
             "Sega - Mega Drive - Genesis".to_string(),
+            "Sega - 32X".to_string(),
             "Sega - Master System - Mark III".to_string(),
             "Sega - Game Gear".to_string(),
         ])
@@ -119,6 +120,7 @@ impl CoreMapper {
 
         self.cores.insert("genesis_plus_gx".to_string(), genesis_plus_gx);
         self.system_cores.insert("Sega - Mega Drive - Genesis".to_string(), "genesis_plus_gx".to_string());
+        self.system_cores.insert("Sega - 32X".to_string(), "genesis_plus_gx".to_string());
         self.system_cores.insert("Sega - Master System - Mark III".to_string(), "genesis_plus_gx".to_string());
         self.system_cores.insert("Sega - Game Gear".to_string(), "genesis_plus_gx".to_string());
 

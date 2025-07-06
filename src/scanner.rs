@@ -401,6 +401,54 @@ impl Scanner {
         Ok(roms)
     }
 
+    /// Versão simplificada para modo paralelo - sem thread monitoring detalhado
+    pub fn scan_directory_simple(&self, dir: &Path) -> Result<Vec<RomFile>> {
+        if !dir.exists() {
+            return Err(ScannerError::DirectoryNotFound(dir.to_path_buf()).into());
+        }
+
+        // Walk directory and collect file paths
+        let walker = if self.recursive {
+            WalkDir::new(dir)
+        } else {
+            WalkDir::new(dir).max_depth(1)
+        };
+
+        let file_paths: Vec<PathBuf> = walker
+            .into_iter()
+            .filter_map(|entry| entry.ok())
+            .filter(|entry| entry.file_type().is_file())
+            .map(|entry| entry.path().to_path_buf())
+            .filter(|path| self.is_rom_file(path))
+            .collect();
+
+        if file_paths.is_empty() {
+            return Ok(Vec::new());
+        }
+
+        // Configure rayon thread pool
+        let pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(self.threads)
+            .build()
+            .context("Falha ao criar thread pool")?;
+
+        // Process files in parallel WITHOUT detailed monitoring for performance
+        let roms: Vec<RomFile> = pool.install(|| {
+            file_paths
+                .par_iter()
+                .filter_map(|path| {
+                    match self.process_file_simple(path) {
+                        Ok(Some(rom)) => Some(rom),
+                        Ok(None) => None,
+                        Err(_) => None, // Ignora erros silenciosamente para performance
+                    }
+                })
+                .collect()
+        });
+
+        Ok(roms)
+    }
+
     fn is_rom_file(&self, path: &Path) -> bool {
         let extension = path.extension()
             .unwrap_or_default()
@@ -556,6 +604,41 @@ impl Scanner {
                 rom.size
             );
         }
+
+        Ok(Some(rom))
+    }
+
+    /// Processamento simplificado de arquivo sem monitoramento detalhado
+    fn process_file_simple(&self, path: &Path) -> Result<Option<RomFile>> {
+        let mut rom = RomFile::new(path.to_path_buf());
+
+        // Get file metadata
+        let metadata = std::fs::metadata(path)
+            .with_context(|| format!("Falha ao ler metadados de {}", path.display()))?;
+        rom.size = metadata.len();
+
+        // Detect if it's an archive
+        rom.is_archive = matches!(rom.extension.as_str(), "zip" | "7z" | "rar");
+
+        // Calculate CRC32 if requested and not cached
+        if self.calculate_crc {
+            if let Some(cached_crc) = self.crc_cache.get(path) {
+                rom.crc32 = Some(*cached_crc);
+            } else {
+                match calculate_crc32(path) {
+                    Ok(crc) => {
+                        rom.crc32 = Some(crc);
+                        self.crc_cache.insert(path.to_path_buf(), crc);
+                    }
+                    Err(_) => {
+                        // Ignora erro de CRC para performance em modo paralelo
+                    }
+                }
+            }
+        }
+
+        // Detect system
+        rom.system = rom.detect_system();
 
         Ok(Some(rom))
     }

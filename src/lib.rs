@@ -12,6 +12,7 @@ pub mod cache;
 pub mod archive;
 pub mod thread_monitor;
 pub mod i18n;
+pub mod mame_xml;
 
 #[cfg(feature = "watch-mode")]
 pub mod watch;

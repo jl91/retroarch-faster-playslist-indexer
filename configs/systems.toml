@@ -55,6 +55,12 @@ extensions = ["md", "smd", "gen", "bin"]
 default_core = "genesis_plus_gx"
 db_name = "Sega - Mega Drive - Genesis.lpl"
 
+[systems.sega32x]
+name = "Sega - 32X"
+extensions = ["32x"]
+default_core = "genesis_plus_gx"
+db_name = "Sega - 32X.lpl"
+
 [systems.mastersystem]
 name = "Sega - Master System - Mark III"
 extensions = ["sms", "sg"]

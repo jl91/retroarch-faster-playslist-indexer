@@ -262,12 +262,39 @@ impl PlaylistBuilder {
             &rom.path.to_string_lossy()
         );
 
-        // Get ROM label (try DAT first, then filename)
+        // Get ROM label with new enhanced DAT→XML logic
         let label = if let Some(crc32) = rom.crc32 {
-            self.dat_collection.get_name_by_crc(crc32)
-                .unwrap_or_else(|| self.clean_filename(&rom.filename))
+            // For MAME systems, use enhanced DAT→XML→Description lookup
+            if system.to_lowercase().contains("mame") || system.to_lowercase().contains("arcade") {
+                if let Some(dat_name) = self.dat_collection.get_name_by_crc(crc32) {
+                    // Got ROM name from DAT, now try to get description from MAME XML
+                    if let Some(xml_description) = self.dat_collection.get_mame_description_by_dat_name(&dat_name) {
+                        xml_description
+                    } else {
+                        // XML lookup failed, use DAT name as fallback
+                        dat_name
+                    }
+                } else {
+                    // DAT lookup failed, try direct filename lookup in MAME XML
+                    self.dat_collection.get_mame_name_by_filename(&rom.filename)
+                        .unwrap_or_else(|| self.clean_filename(&rom.filename))
+                }
+            } else {
+                // For non-MAME systems, use traditional DAT lookup
+                if let Some(dat_name) = self.dat_collection.get_name_by_crc(crc32) {
+                    dat_name
+                } else {
+                    self.clean_filename(&rom.filename)
+                }
+            }
         } else {
-            self.clean_filename(&rom.filename)
+            // No CRC32, for MAME systems try direct filename lookup in XML
+            if system.to_lowercase().contains("mame") || system.to_lowercase().contains("arcade") {
+                self.dat_collection.get_mame_name_by_filename(&rom.filename)
+                    .unwrap_or_else(|| self.clean_filename(&rom.filename))
+            } else {
+                self.clean_filename(&rom.filename)
+            }
         };
 
         // Get core for this system

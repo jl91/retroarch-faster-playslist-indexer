@@ -269,3 +269,55 @@ pub fn t_validation_valid(count: i32, percentage: f64) -> String {
     args.insert("percentage".to_string(), format!("{:.1}", percentage));
     t_with_args("validation-valid", &args)
 }
+
+pub fn t_command(key: &str, command: &str) -> String {
+    let mut args = HashMap::new();
+    args.insert("command".to_string(), command.to_string());
+    t_with_args(key, &args)
+}
+
+pub fn t_error(key: &str, error: &str) -> String {
+    let mut args = HashMap::new();
+    args.insert("error".to_string(), error.to_string());
+    t_with_args(key, &args)
+}
+
+pub fn t_type(key: &str, type_value: &str) -> String {
+    let mut args = HashMap::new();
+    args.insert("type".to_string(), type_value.to_string());
+    t_with_args(key, &args)
+}
+
+pub fn t_system(key: &str, system: &str) -> String {
+    let mut args = HashMap::new();
+    args.insert("system".to_string(), system.to_string());
+    t_with_args(key, &args)
+}
+
+pub fn t_systems(key: &str, systems: &str) -> String {
+    let mut args = HashMap::new();
+    args.insert("systems".to_string(), systems.to_string());
+    t_with_args(key, &args)
+}
+
+pub fn t_rom_system(key: &str, rom: &str, system: &str) -> String {
+    let mut args = HashMap::new();
+    args.insert("rom".to_string(), rom.to_string());
+    args.insert("system".to_string(), system.to_string());
+    t_with_args(key, &args)
+}
+
+pub fn t_count_time(key: &str, count: usize, time: f32) -> String {
+    let mut args = HashMap::new();
+    args.insert("count".to_string(), count.to_string());
+    args.insert("time".to_string(), format!("{:.2}", time));
+    t_with_args(key, &args)
+}
+
+pub fn t_directory_scan(key: &str, current: usize, total: usize, path: &str) -> String {
+    let mut args = HashMap::new();
+    args.insert("current".to_string(), current.to_string());
+    args.insert("total".to_string(), total.to_string());
+    args.insert("path".to_string(), path.to_string());
+    t_with_args(key, &args)
+}

@@ -20,6 +20,7 @@ mod cache;
 mod archive;
 mod thread_monitor;
 mod i18n;
+mod mame_xml;
 #[cfg(feature = "watch-mode")]
 mod watch;
 #[cfg(feature = "dat-download")]
@@ -302,13 +303,10 @@ fn handle_index_command(args: Args) -> Result<()> {
     }
 
     // Show scanning summary
-    println!("\n{} {}", "📈".bright_cyan().bold(), i18n::t("scan-summary").bright_cyan().bold());
-    println!("{}", i18n::t_count("total-roms", total_scanned_files as i32).bright_green());
-    println!("{}", i18n::t_count("directories-scanned", args.roms_dirs.len() as i32).bright_blue());
-    if archives_found > 0 {
-        println!("{}", i18n::t_count("archives-found", archives_found as i32).bright_magenta());
-    }
-    println!("└─ Threads utilizadas: {}", args.threads.unwrap_or_else(num_cpus::get).to_string().bright_yellow());
+    println!("\n📈 {} do Escaneamento:", "Resumo".bright_cyan().bold());
+    println!("{}", i18n::t_count("total-roms-stat", total_scanned_files as i32).bright_green());
+    println!("{}", i18n::t_conversion(&source_platform.display_name(), &target_platform.display_name()).bright_yellow());
+    println!("🧵 Threads: {}", args.threads.unwrap_or_else(num_cpus::get));
     println!();
 
     // Load DAT files if available
@@ -1009,7 +1007,7 @@ fn handle_interactive_console_selection(args: &mut Args) -> Result<()> {
     
     // Get list of available systems
     let core_mapper = core_mapper::CoreMapper::new();
-    let available_systems = get_available_systems(&core_mapper);
+    let available_systems = get_available_sistemas(&core_mapper);
     
     if available_systems.is_empty() {
         eprintln!("{}", i18n::t("no-available-systems").red());
@@ -1050,27 +1048,25 @@ fn handle_interactive_console_selection(args: &mut Args) -> Result<()> {
     }
     
     // Process each configured console
-    for config in console_configs {
-        println!("\n{} Processando: {}", "🔄".bright_blue(), config.system_name.bright_green());
-        
-        // Configure args temporarily for this console
-        let mut temp_args = args.clone();
-        temp_args.roms_dirs = vec![config.roms_dir.clone()];
-        temp_args.output_dir = config.output_dir;
-        
-        // In interactive mode, force the specific system
-        if config.force_system {
-            temp_args.system = Some(config.system_name.clone());
-        }
-        
-        // Execute indexing for this specific console
-        match handle_index_command_forced_system(temp_args, &config.system_name) {
-            Ok(_) => println!("  {} {}", "✅".green(), i18n::t("completed-successfully").bright_green()),
-            Err(e) => {
-                eprintln!("  {}", i18n::t_with_arg("error-processing-system", &format!("{}: {}", config.system_name, e)).red());
-                continue;
-            }
-        }
+    println!("\n{} Processando {} consoles...", "🔄".bright_blue(), console_configs.len());
+    
+    // Determine if we should process consoles in parallel or sequentially
+    let total_threads = args.threads.unwrap_or_else(num_cpus::get);
+    let consoles_count = console_configs.len();
+    
+    if consoles_count == 1 {
+        // Single console: use all available threads
+        let config = &console_configs[0];
+        println!("\n{} Processando: {} (usando {} threads)", "🔄".bright_blue(), config.system_name.bright_green(), total_threads);
+        process_single_console_config(args, config)?;
+    } else if consoles_count <= 4 && total_threads >= 8 {
+        // Multiple consoles with sufficient threads: process in parallel
+        println!("\n{} Processamento paralelo ativado para {} consoles", "⚡".bright_yellow(), consoles_count);
+        process_consoles_parallel(args, console_configs)?;
+    } else {
+        // Multiple consoles but limited threads: process sequentially  
+        println!("\n{} Processamento sequencial para {} consoles", "🔄".bright_blue(), consoles_count);
+        process_consoles_sequential(args, console_configs)?;
     }
     
     println!("\n{}", i18n::t("processing-all-consoles-complete").bright_green().bold());
@@ -1078,7 +1074,7 @@ fn handle_interactive_console_selection(args: &mut Args) -> Result<()> {
 }
 
 /// Get list of available systems from core mapper
-fn get_available_systems(_core_mapper: &core_mapper::CoreMapper) -> Vec<String> {
+fn get_available_sistemas(_core_mapper: &core_mapper::CoreMapper) -> Vec<String> {
     // Since get_supported_systems() is not available, let's create manually
     vec![
         "Nintendo - Nintendo 64".to_string(),
@@ -1088,6 +1084,7 @@ fn get_available_systems(_core_mapper: &core_mapper::CoreMapper) -> Vec<String> 
         "Nintendo - Game Boy".to_string(),
         "Nintendo - Nintendo Entertainment System".to_string(),
         "Sega - Mega Drive - Genesis".to_string(),
+        "Sega - 32X".to_string(),
         "Sega - Master System - Mark III".to_string(),
         "Sega - Game Gear".to_string(),
         "Sony - PlayStation".to_string(),
@@ -1275,10 +1272,8 @@ fn handle_index_command_forced_system(args: Args, forced_system: &str) -> Result
         // FORCE ALL ROMS TO SELECTED SYSTEM
         for rom in &mut roms {
             rom.system = Some(forced_system.to_string());
-            let mut args_map = std::collections::HashMap::new();
-            args_map.insert("filename".to_string(), rom.path.file_name().unwrap_or_default().to_string_lossy().to_string());
-            args_map.insert("system".to_string(), forced_system.to_string());
-            println!("  {}", i18n::t_with_args("forcing-rom-to-system", &args_map));
+            let filename = rom.path.file_name().unwrap_or_default().to_string_lossy().to_string();
+            println!("  {}", i18n::t_rom_system("forcing-rom-to-system", &filename, forced_system));
         }
         
         // Count archives
@@ -1310,7 +1305,7 @@ fn handle_index_command_forced_system(args: Args, forced_system: &str) -> Result
     // Show scanning summary
     println!("\n📈 {} do Escaneamento:", "Resumo".bright_cyan().bold());
     println!("{}", i18n::t_count("total-roms-stat", total_scanned_files as i32).bright_green());
-    println!("{}", i18n::t_with_arg("forced-system-scan", forced_system).bright_cyan());
+    println!("{}", i18n::t_with_arg("forced-system", forced_system).bright_cyan());
     println!("{}", i18n::t_with_arg("directories-scanned", &args.roms_dirs.len().to_string()).bright_blue());
     if archives_found > 0 {
         println!("├─ Arquivos comprimidos: {}", archives_found.to_string().bright_magenta());
@@ -1361,5 +1356,188 @@ fn handle_index_command_forced_system(args: Args, forced_system: &str) -> Result
         generate_report(&all_roms, &playlists_by_system, report_path)?;
     }
     
+    Ok(())
+}
+
+/// Versão otimizada do handle_index_command_forced_system para modo paralelo
+/// Retorna o número de ROMs processadas para estatísticas
+fn handle_index_command_forced_system_optimized(args: Args, forced_system: &str) -> Result<usize> {
+    if args.roms_dirs.is_empty() {
+        return Err(anyhow::anyhow!("Diretório de ROMs não especificado"));
+    }
+
+    // Load or create config
+    let config = Config::load_or_create(args.config.as_deref())?;
+    
+    // Determine platforms
+    let (source_platform, target_platform) = determine_platforms(&args, &config)?;
+
+    // Initialize scanner with simplified monitoring (no verbose progress bars)
+    let scanner = Scanner::new()
+        .with_threads(args.threads.unwrap_or_else(num_cpus::get))
+        .with_recursive(!args.no_recursive)
+        .with_calculate_crc(!args.no_crc)
+        .with_extensions(args.extensions.as_deref())
+        .with_verbose(false); // Sempre false para evitar contenção
+
+    // Scan all ROM directories
+    let mut all_roms = Vec::new();
+    
+    for roms_dir in &args.roms_dirs {
+        let mut roms = scanner.scan_directory_simple(roms_dir)?;
+        
+        // FORCE ALL ROMS TO SELECTED SYSTEM
+        for rom in &mut roms {
+            rom.system = Some(forced_system.to_string());
+        }
+        
+        all_roms.extend(roms);
+    }
+
+    if all_roms.is_empty() {
+        return Ok(0);
+    }
+
+    // Load DAT files if available
+    let dat_collection = if let Some(dat_dir) = &args.dat_dir {
+        dat_parser::DatCollection::load_directory(dat_dir)?
+    } else {
+        dat_parser::DatCollection::new()
+    };
+
+    // Build playlists - only for forced system
+    let playlist_builder = PlaylistBuilder::new()
+        .with_platforms(source_platform, target_platform)
+        .with_dat_collection(dat_collection)
+        .with_verbose(false); // Desabilita verbose para performance
+
+    // Create output directory
+    std::fs::create_dir_all(&args.output_dir)?;
+
+    // Generate playlist only for forced system
+    let playlist = playlist_builder.build_single_system_playlist(&all_roms, forced_system)?;
+    
+    // Save playlist
+    let filename = format!("{}.lpl", forced_system);
+    let output_path = args.output_dir.join(&filename);
+    playlist.save(&output_path)?;
+    
+    Ok(all_roms.len())
+}
+
+/// Process a single console configuration (uses all available threads)
+fn process_single_console_config(args: &Args, config: &ConsoleConfig) -> Result<()> {
+    // Configure args temporarily for this console
+    let mut temp_args = args.clone();
+    temp_args.roms_dirs = vec![config.roms_dir.clone()];
+    temp_args.output_dir = config.output_dir.clone();
+    
+    // In interactive mode, force the specific system
+    if config.force_system {
+        temp_args.system = Some(config.system_name.clone());
+    }
+    
+    // Execute indexing for this specific console
+    match handle_index_command_forced_system(temp_args, &config.system_name) {
+        Ok(_) => println!("  {} {}", "✅".green(), i18n::t("completed-successfully").bright_green()),
+        Err(e) => {
+            eprintln!("  {}", i18n::t_with_arg("error-processing-system", &format!("{}: {}", config.system_name, e)).red());
+            return Err(e);
+        }
+    }
+    Ok(())
+}
+
+/// Process multiple consoles in parallel (when sufficient threads available)
+fn process_consoles_parallel(args: &Args, console_configs: Vec<ConsoleConfig>) -> Result<()> {
+    use rayon::prelude::*;
+    
+    let total_threads = args.threads.unwrap_or_else(num_cpus::get);
+    let threads_per_console = std::cmp::max(2, total_threads / console_configs.len()); // Mínimo 2 threads por console
+    
+    println!("  📊 {} threads por console (total: {})", threads_per_console, total_threads);
+    println!("  ⚡ Processamento paralelo otimizado: progress simplificado");
+    
+    // Create a custom thread pool to avoid interference with individual console scanning
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(console_configs.len().min(total_threads))
+        .build()
+        .map_err(|e| anyhow::anyhow!("Falha ao criar thread pool: {}", e))?;
+    
+    // Process consoles in parallel using custom pool
+    let results: Vec<Result<()>> = pool.install(|| {
+        console_configs
+            .par_iter()
+            .map(|config| {
+                let thread_id = rayon::current_thread_index().unwrap_or(0);
+                println!("  🚀 [T{}] Iniciando: {}", thread_id, config.system_name.bright_green());
+                
+                // Configure args for this console with limited threads
+                let mut temp_args = args.clone();
+                temp_args.roms_dirs = vec![config.roms_dir.clone()];
+                temp_args.output_dir = config.output_dir.clone();
+                temp_args.threads = Some(threads_per_console);
+                
+                // IMPORTANTE: Desabilitar verbose para reduzir contenção de I/O
+                temp_args.verbose = 0; // Desabilita progress detalhado individual
+                
+                // In interactive mode, force the specific system
+                if config.force_system {
+                    temp_args.system = Some(config.system_name.clone());
+                }
+                
+                // Execute indexing for this specific console
+                let start_time = std::time::Instant::now();
+                match handle_index_command_forced_system_optimized(temp_args, &config.system_name) {
+                    Ok(rom_count) => {
+                        let duration = start_time.elapsed();
+                        println!("  ✅ [T{}] {}: {} ROMs em {:.2}s", 
+                                thread_id, 
+                                config.system_name.bright_green(), 
+                                rom_count, 
+                                duration.as_secs_f32());
+                        Ok(())
+                    },
+                    Err(e) => {
+                        eprintln!("  ❌ [T{}] Erro em {}: {}", thread_id, config.system_name.bright_red(), e);
+                        Err(e)
+                    }
+                }
+            })
+            .collect()
+    });
+    
+    // Check for errors
+    for result in results {
+        result?;
+    }
+    
+    Ok(())
+}
+
+/// Process multiple consoles sequentially (when limited threads)
+fn process_consoles_sequential(args: &Args, console_configs: Vec<ConsoleConfig>) -> Result<()> {
+    for config in console_configs {
+        println!("\n{} Processando: {}", "🔄".bright_blue(), config.system_name.bright_green());
+        
+        // Configure args temporarily for this console
+        let mut temp_args = args.clone();
+        temp_args.roms_dirs = vec![config.roms_dir.clone()];
+        temp_args.output_dir = config.output_dir.clone();
+        
+        // In interactive mode, force the specific system
+        if config.force_system {
+            temp_args.system = Some(config.system_name.clone());
+        }
+        
+        // Execute indexing for this specific console
+        match handle_index_command_forced_system(temp_args, &config.system_name) {
+            Ok(_) => println!("  {} {}", "✅".green(), i18n::t("completed-successfully").bright_green()),
+            Err(e) => {
+                eprintln!("  {}", i18n::t_with_arg("error-processing-system", &format!("{}: {}", config.system_name, e)).red());
+                continue;
+            }
+        }
+    }
     Ok(())
 }

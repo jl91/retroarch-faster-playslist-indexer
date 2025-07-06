@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::path::Path;
 
 use crate::error::DatError;
+use crate::mame_xml::MameXmlDatabase;
 
 #[derive(Debug, Clone)]
 pub struct DatEntry {
@@ -22,11 +23,57 @@ pub struct DatCollection {
     pub entries: HashMap<String, Vec<DatEntry>>,
     // All entries indexed by CRC32 for fast lookup
     crc_to_entry: HashMap<u32, DatEntry>,
+    // MAME XML database for MAME 2003-Plus fallback
+    mame_xml_db: Option<MameXmlDatabase>,
 }
 
 impl DatCollection {
     pub fn new() -> Self {
-        Self::default()
+        let mut collection = Self {
+            crc_to_name: HashMap::new(),
+            entries: HashMap::new(),
+            crc_to_entry: HashMap::new(),
+            mame_xml_db: None,
+        };
+        
+        // Always try to load MAME XML database for MAME fallback
+        if let Err(e) = collection.load_mame_xml_database() {
+            warn!("Falha ao carregar MAME XML database: {}", e);
+        }
+        
+        collection
+    }
+
+    /// Load MAME XML database for fallback lookup
+    pub fn load_mame_xml_database(&mut self) -> Result<()> {
+        match MameXmlDatabase::load_embedded() {
+            Ok(db) => {
+                let (total_roms, _) = db.stats();
+                debug!("Carregado MAME XML database com {} ROMs para fallback", total_roms);
+                self.mame_xml_db = Some(db);
+                Ok(())
+            }
+            Err(e) => {
+                warn!("Falha ao carregar MAME XML database: {}", e);
+                Ok(()) // Non-fatal error, continue without MAME XML fallback
+            }
+        }
+    }
+
+    /// Try to load MAME XML database from file, fallback to embedded
+    pub fn load_mame_xml_database_from_file<P: AsRef<Path>>(&mut self, path: P) -> Result<()> {
+        match MameXmlDatabase::load_from_file(path.as_ref()) {
+            Ok(db) => {
+                let (total_roms, _) = db.stats();
+                debug!("Carregado MAME XML database de arquivo com {} ROMs", total_roms);
+                self.mame_xml_db = Some(db);
+                Ok(())
+            }
+            Err(_) => {
+                // Fallback to embedded
+                self.load_mame_xml_database()
+            }
+        }
     }
 
     pub fn load_from_file<P: AsRef<Path>>(&mut self, path: P) -> Result<()> {
@@ -42,21 +89,26 @@ impl DatCollection {
 
         if !dir.exists() {
             warn!("Diretório DAT não encontrado: {}", dir.display());
-            return Ok(collection);
-        }
-
-        for entry in std::fs::read_dir(dir)? {
-            let entry = entry?;
-            let path = entry.path();
-            
-            if path.is_file() && path.extension().map_or(false, |ext| ext == "dat") {
-                if let Err(e) = collection.load_dat_file(&path) {
-                    warn!("Falha ao carregar DAT {}: {}", path.display(), e);
+        } else {
+            for entry in std::fs::read_dir(dir)? {
+                let entry = entry?;
+                let path = entry.path();
+                
+                if path.is_file() && path.extension().map_or(false, |ext| ext == "dat") {
+                    if let Err(e) = collection.load_dat_file(&path) {
+                        warn!("Falha ao carregar DAT {}: {}", path.display(), e);
+                    }
                 }
             }
+
+            debug!("Carregados {} entradas DAT de {}", collection.crc_to_name.len(), dir.display());
         }
 
-        debug!("Carregados {} entradas DAT de {}", collection.crc_to_name.len(), dir.display());
+        // Always try to load MAME XML database as fallback
+        if let Err(e) = collection.load_mame_xml_database() {
+            warn!("Falha ao carregar MAME XML database: {}", e);
+        }
+
         Ok(collection)
     }
 
@@ -356,7 +408,54 @@ impl DatCollection {
     }
 
     pub fn get_name_by_crc(&self, crc32: u32) -> Option<String> {
-        self.crc_to_name.get(&crc32).cloned()
+        // Primary DAT lookup - this is now the first step for MAME systems
+        // The returned name will be used to lookup description in MAME XML
+        if let Some(name) = self.crc_to_name.get(&crc32) {
+            return Some(name.clone());
+        }
+
+        // No luck with DAT lookup
+        if let Some(ref _mame_db) = self.mame_xml_db {
+            debug!("DAT lookup failed for CRC32 {:08X}, will fallback to filename-based MAME XML lookup", crc32);
+        }
+
+        None
+    }
+
+    /// Get ROM name by filename for MAME ROMs with enhanced DAT→XML lookup
+    /// New strategy: DAT → XML → Description
+    /// 1. Try to get ROM name from filename (without extension)
+    /// 2. If found in MAME XML, get the description from XML
+    /// 3. This provides better labels than raw DAT names
+    pub fn get_mame_name_by_filename(&self, filename: &str) -> Option<String> {
+        if let Some(ref mame_db) = self.mame_xml_db {
+            // Remove file extension and try to match ROM name
+            let rom_name = filename
+                .split('.')
+                .next()
+                .unwrap_or(filename);
+            
+            if let Some(description) = mame_db.get_description(rom_name) {
+                debug!("MAME XML lookup by filename: {} -> {}", rom_name, description);
+                return Some(description.to_string());
+            }
+        }
+        None
+    }
+
+    /// Enhanced MAME lookup: DAT name → XML description  
+    /// This is the new primary method for MAME systems
+    /// 1. First get ROM name from DAT by CRC32
+    /// 2. Then use that name to lookup description in MAME XML
+    /// 3. Return the XML description (more informative)
+    pub fn get_mame_description_by_dat_name(&self, dat_name: &str) -> Option<String> {
+        if let Some(ref mame_db) = self.mame_xml_db {
+            if let Some(description) = mame_db.get_description(dat_name) {
+                debug!("MAME DAT→XML lookup: {} -> {}", dat_name, description);
+                return Some(description.to_string());
+            }
+        }
+        None
     }
 
     pub fn get_system_entries(&self, system: &str) -> Option<&[DatEntry]> {
