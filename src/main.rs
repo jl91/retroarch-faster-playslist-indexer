@@ -1,6 +1,7 @@
 use anyhow::Result;
 use clap::Parser;
 use colored::*;
+use dialoguer::{Input, Select, Confirm};
 use indicatif::{ProgressBar, ProgressStyle};
 use log::error;
 use std::path::PathBuf;
@@ -42,7 +43,7 @@ use cache::CrcCache;
 fn main() -> Result<()> {
     env_logger::init();
     
-    let args = Args::parse();
+    let mut args = Args::parse();
     
     // Print banner
     print_banner();
@@ -72,7 +73,8 @@ fn main() -> Result<()> {
             handle_cache_command(action.clone())?;
         }
         None => {
-            handle_index_command(args)?;
+            // Modo interativo para comando index se parâmetros necessários não forem fornecidos
+            handle_index_command_with_prompts(&mut args)?;
         }
     }
     
@@ -80,9 +82,121 @@ fn main() -> Result<()> {
 }
 
 fn print_banner() {
-    println!("{}", "🎮 RetroArch Fast Playlist Indexer v1.0".bright_cyan().bold());
+    println!("{}", "🎮 RetroArch Fast Playlist Indexer v1.3.1".bright_cyan().bold());
     println!("{}", "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━".cyan());
     println!();
+}
+
+/// Prompt interativo para obter diretórios de ROMs do usuário
+fn prompt_for_roms_dirs() -> Result<Vec<PathBuf>> {
+    println!("{}", "📂 Configuração de Diretórios de ROMs".bright_cyan().bold());
+    println!();
+    
+    let mut roms_dirs = Vec::new();
+    
+    loop {
+        let prompt_text = if roms_dirs.is_empty() {
+            "Digite o caminho do diretório de ROMs"
+        } else {
+            "Digite outro diretório de ROMs (ou Enter para continuar)"
+        };
+        
+        let input = Input::<String>::new()
+            .with_prompt(prompt_text)
+            .allow_empty(!roms_dirs.is_empty())
+            .interact()?;
+        
+        if input.trim().is_empty() && !roms_dirs.is_empty() {
+            break;
+        }
+        
+        let path = PathBuf::from(input.trim());
+        
+        if !path.exists() {
+            println!("{} Diretório não encontrado: {}", "⚠️".yellow(), path.display());
+            continue;
+        }
+        
+        if !path.is_dir() {
+            println!("{} Não é um diretório: {}", "⚠️".yellow(), path.display());
+            continue;
+        }
+        
+        roms_dirs.push(path.clone());
+        println!("{} Adicionado: {}", "✅".green(), path.display());
+        
+        if roms_dirs.len() >= 10 {
+            println!("{} Limite máximo de diretórios atingido", "⚠️".yellow());
+            break;
+        }
+    }
+    
+    Ok(roms_dirs)
+}
+
+/// Prompt interativo para obter plataformas
+fn prompt_for_platforms() -> Result<(Platform, Platform)> {
+    println!("{}", "🔄 Configuração de Plataformas".bright_cyan().bold());
+    println!();
+    
+    let platforms = vec![
+        Platform::Windows,
+        Platform::Linux,
+        Platform::MacOS,
+        Platform::Switch,
+        Platform::Android,
+        Platform::SteamDeck,
+        Platform::Raspberry,
+    ];
+    
+    let platform_names: Vec<&str> = platforms.iter()
+        .map(|p| p.display_name())
+        .collect();
+    
+    println!("Selecione a plataforma de {} (onde você está executando):", "origem".bright_yellow());
+    let source_index = Select::new()
+        .items(&platform_names)
+        .default(0)
+        .interact()?;
+    
+    println!();
+    println!("Selecione a plataforma de {} (onde será usado):", "destino".bright_green());
+    let target_index = Select::new()
+        .items(&platform_names)
+        .default(if source_index == 3 { 0 } else { 3 }) // Switch por padrão se não for origem
+        .interact()?;
+    
+    Ok((platforms[source_index], platforms[target_index]))
+}
+
+/// Prompt interativo para obter diretório de saída
+fn prompt_for_output_dir() -> Result<PathBuf> {
+    println!("{}", "📁 Configuração de Diretório de Saída".bright_cyan().bold());
+    println!();
+    
+    let default_output = "./playlists";
+    
+    let output = Input::<String>::new()
+        .with_prompt("Digite o diretório de saída para playlists")
+        .default(default_output.to_string())
+        .interact()?;
+    
+    let output_path = PathBuf::from(output.trim());
+    
+    // Criar diretório se não existir
+    if !output_path.exists() {
+        let create = Confirm::new()
+            .with_prompt(format!("Diretório não existe. Criar '{}'?", output_path.display()))
+            .default(true)
+            .interact()?;
+        
+        if create {
+            std::fs::create_dir_all(&output_path)?;
+            println!("{} Diretório criado: {}", "✅".green(), output_path.display());
+        }
+    }
+    
+    Ok(output_path)
 }
 
 fn handle_index_command(args: Args) -> Result<()> {
@@ -725,4 +839,57 @@ fn generate_report(
     // TODO: Implement detailed report generation
     std::fs::write(report_path, "# Relatório de Indexação\n\nRelatório em desenvolvimento...")?;
     Ok(())
+}
+
+/// Função principal para lidar com indexação com prompts interativos
+fn handle_index_command_with_prompts(args: &mut Args) -> Result<()> {
+    // Se não foram fornecidos diretórios de ROMs via CLI, perguntar interativamente
+    if args.roms_dirs.is_empty() {
+        match prompt_for_roms_dirs() {
+            Ok(dirs) => args.roms_dirs = dirs,
+            Err(e) => {
+                eprintln!("{} Erro ao obter diretórios de ROMs: {}", "❌".red(), e);
+                std::process::exit(1);
+            }
+        }
+    }
+    
+    // Se não foram fornecidas plataformas via CLI, perguntar interativamente
+    if args.source_platform.is_none() || args.target_platform.is_none() {
+        match prompt_for_platforms() {
+            Ok((source, target)) => {
+                if args.source_platform.is_none() {
+                    args.source_platform = Some(source);
+                }
+                if args.target_platform.is_none() {
+                    args.target_platform = Some(target);
+                }
+            }
+            Err(e) => {
+                eprintln!("{} Erro ao obter plataformas: {}", "❌".red(), e);
+                std::process::exit(1);
+            }
+        }
+    }
+    
+    // Se o diretório de saída for o padrão, perguntar se o usuário quer alterar
+    if args.output_dir == PathBuf::from("./playlists") {
+        let use_default = Confirm::new()
+            .with_prompt("Usar diretório de saída padrão './playlists'?")
+            .default(true)
+            .interact()?;
+        
+        if !use_default {
+            match prompt_for_output_dir() {
+                Ok(output_dir) => args.output_dir = output_dir,
+                Err(e) => {
+                    eprintln!("{} Erro ao obter diretório de saída: {}", "❌".red(), e);
+                    std::process::exit(1);
+                }
+            }
+        }
+    }
+    
+    // Agora executar o comando index normal
+    handle_index_command(args.clone())
 }

@@ -83,10 +83,11 @@ A aplicação **RetroArch Fast Playlist Indexer** foi migrada para **Rust 2024**
 - **Playlist master unificada** - Arquivo `roms.lpl` com TODAS as ROMs
 - **Cálculo de CRC32** - Para identificação precisa de ROMs
 - **Interface CLI completa** - Linha de comando intuitiva e poderosa
+- **Prompt Interativo** - Interface para configurar paths quando não fornecidos via CLI
 
 ### ✅ Advanced Features (v1.1/v1.2/v1.3)
 - **Cache Persistente** - Cache de CRC32 para otimização de performance
-- **Suporte a Arquivos** - Leitura de ROMs em ZIP (7z em desenvolvimento)
+- **Suporte a Arquivos** - Leitura de ROMs em ZIP e 7z (ambos implementados)
 - **Modo Watch** - Monitoramento automático de diretórios
 - **Download de DATs** - Download automático de bancos de dados de ROMs
 - **Validação de ROMs** - Verificação de integridade via arquivos DAT
@@ -237,7 +238,18 @@ output_directory = "./playlists"
 - [x] ✅ **Validação de integridade via DAT** - Implementado em `validator.rs`
 - [x] ✅ **Deduplicação inteligente** - Implementado em `deduplicator.rs` com 5 estratégias
 - [x] ✅ **Migração para Rust 2024** - Concluída com compatibilidade total
-- [ ] 🔄 **Suporte completo a 7z** - Em desenvolvimento (issue com Rust 2024)
+- [x] ✅ **Suporte completo a 7z** - Implementado e funcional com `sevenz-rust` v0.6.1
+- [x] ✅ **Prompt Interativo** - Interface para configurar paths de origem e destino quando não fornecidos via CLI
+
+## 🔄 **Atualização v1.3.1 (5 de julho de 2025)**
+
+### ✅ **Prompt Interativo Implementado**
+- ✅ **Módulo `dialoguer`**: Dependência adicionada para interface interativa
+- ✅ **Função `prompt_for_roms_dirs()`**: Permite configurar múltiplos diretórios de ROMs
+- ✅ **Função `prompt_for_platforms()`**: Seleção visual de plataformas origem/destino
+- ✅ **Função `prompt_for_output_dir()`**: Configuração do diretório de saída com criação automática
+- ✅ **Integração CLI**: Fallback automático para prompts quando argumentos não fornecidos
+- ✅ **Validação**: Verificação de existência de diretórios e criação automática quando necessário
 
 ## 🚀 Próximos Passos (Roadmap v1.4)
 
@@ -273,7 +285,7 @@ O **RetroArch Fast Playlist Indexer** não apenas foi desenvolvido com sucesso, 
 
 ### 🚀 **Funcionalidades Avançadas Implementadas**
 - ✅ **Cache Inteligente**: Sistema de cache CRC32 persistente
-- ✅ **Archive Support**: Leitura direta de ZIP (7z em desenvolvimento)
+- ✅ **Archive Support**: Leitura direta de ZIP e 7z (ambos implementados)
 - ✅ **Modo Watch**: Monitoramento automático em tempo real
 - ✅ **DAT Integration**: Download e validação automática
 - ✅ **Deduplicação**: 5 estratégias inteligentes de limpeza
