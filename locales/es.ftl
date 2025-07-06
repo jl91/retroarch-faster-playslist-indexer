@@ -164,5 +164,3 @@ no-system-selected = ⚠️  Ningún sistema seleccionado. Saliendo...
 initialization-warning = Advertencia: Error al inicializar la localización: {$error}
 usage-instruction = Uso: {$command} --roms-dir <RUTA>
 error-processing-failed = ❌ {$system}: {$error}
-roms-found-summary = 📊 {$count} ROMs encontradas en {$time}s
-archives-detected = 📦 {$count} archivos comprimidos detectados

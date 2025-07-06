@@ -167,3 +167,10 @@ usage-instruction = Use: {$command} --roms-dir <PATH>
 error-processing-failed = ❌ {$system}: {$error}
 roms-found-summary = 📊 {$count} ROMs found in {$time}s
 archives-detected = 📦 {$count} compressed files detected
+
+# Watch mode
+watch-mode-active = ✅ Watch mode active! Press Ctrl+C to stop...
+watch-active-press-ctrl-c = ✅ Watch active! Press Ctrl+C to stop...
+
+# System download
+systems-for-download = 🎯 Systems for download: { $systems }

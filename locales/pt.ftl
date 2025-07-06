@@ -124,6 +124,7 @@ automatic-mode-desc = Detecta e indexa automaticamente todos os sistemas
 select-mode = Selecione o modo
 
 # Watch mode
+watch-mode-active = ✅ Modo Watch ativo! Pressione Ctrl+C para parar...
 watch-active-press-ctrl-c = ✅ Watch ativo! Pressione Ctrl+C para parar...
 
 # Download de sistemas
@@ -183,5 +184,3 @@ no-system-selected = ⚠️  Nenhum sistema selecionado. Saindo...
 initialization-warning = Aviso: Falha ao inicializar localização: {$error}
 usage-instruction = Use: {$command} --roms-dir <CAMINHO>
 error-processing-failed = ❌ {$system}: {$error}
-roms-found-summary = 📊 {$count} ROMs encontradas em {$time}s
-archives-detected = 📦 {$count} arquivos comprimidos detectados
